@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    background-image: url(../public/suits.png),
+      linear-gradient(
+        to bottom right,
+        hsl(240deg, 75%, 10%),
+        hsl(300deg, 75%, 10%)
+      );
+    background-repeat: repeat, no-repeat;
+    background-size: 100px, 100%;
+  }
+}
