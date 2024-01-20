@@ -2,6 +2,8 @@
 
 import Table from "@repo/ui/table";
 import { useEffect, useRef, useState } from "react";
+import { socket } from "../../socket";
+import { Player } from "../../../../server/src/types";
 
 const getPointOnPill = (
   clientWidth: number,
@@ -17,7 +19,6 @@ const getPointOnPill = (
   pillRadius /= perimeter;
 
   // start from bottom middle;
-  console.log(isPortrait);
   if (isPortrait) {
     distance += sideLength + 0.5 * Math.PI * pillRadius;
   } else {
@@ -72,18 +73,32 @@ const getPointOnPill = (
   return [x, y].map((p) => p * perimeter);
 };
 
-export default function Room() {
-  const [players, setPlayers] = useState<number[]>([]);
+export default function Room({ params }: { params: { code: string } }) {
+  const [players, setPlayers] = useState<Player[]>([]);
   const tableRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    setPlayers([...Array(7).keys()]);
+    socket.emit(
+      "joinRoom",
+      localStorage.getItem("name") || "Player",
+      params.code,
+      (players) => {
+        setPlayers(players);
+      },
+    );
+    socket.on("updatePlayers", (players) => {
+      setPlayers(players);
+    });
+    return () => {
+      socket.off("updatePlayers");
+    };
   }, []);
 
   return (
     <main className="min-w-screen flex min-h-screen items-center justify-center p-4">
       <Table>
         <div ref={tableRef} className="relative -m-12 h-full w-full">
-          {players.map((n, i, a) => {
+          {players.map((p, i, a) => {
             if (tableRef.current === null) {
               return;
             }
@@ -96,13 +111,17 @@ export default function Room() {
             );
             return (
               <div
-                className="absolute h-4 w-4 -translate-x-[50%] -translate-y-[50%] rounded-full bg-red-600"
+                key={i}
+                className={`absolute flex -translate-x-[50%] -translate-y-[50%] flex-col items-center rounded-xl bg-gray-800/75 px-6 py-2 text-white ${
+                  i === 0 ? "border-8 border-white" : ""
+                }`}
                 style={{
                   left: x,
                   top: y,
                 }}
               >
-                {n}
+                <span className="text-lg">{p.name}</span>
+                <span className="text-2xl font-bold">{p.stack}</span>
               </div>
             );
           })}
