@@ -5,5 +5,5 @@ import {
 } from "../../server/src/types";
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-  "http://localhost:3001",
+  "http://192.168.13.226:3001",
 );

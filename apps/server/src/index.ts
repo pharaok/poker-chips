@@ -7,7 +7,7 @@ const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
   server,
   {
-    cors: { origin: "http://localhost:3000" },
+    cors: { origin: "*" },
   },
 );
 
@@ -39,6 +39,7 @@ io.on("connection", (socket) => {
     socket.join(rId);
     callback(rooms[rId]!);
     socket.to(rId).emit("updatePlayers", rooms[rId]!);
+    console.log("someone joined", rId, rooms);
   });
 
   socket.on("disconnect", () => {

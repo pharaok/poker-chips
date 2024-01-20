@@ -38,6 +38,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "lucide-react": "^0.312.0"
+    "lucide-react": "^0.312.0",
+    "tailwind-merge": "^2.2.0"
   }
 }

@@ -33,7 +33,7 @@ export default function Page() {
             className="w-full rounded-full bg-black/50 px-6 py-2 text-white"
           ></input>
           <Button
-            card
+            type="card"
             onClick={() => {
               socket.emit("createRoom", (id: string) => {
                 console.log(id);
@@ -44,7 +44,7 @@ export default function Page() {
             CREATE ROOM
             <Spade className="h-6" />
           </Button>
-          <Button card onClick={() => setModalVisible(true)}>
+          <Button type="card" onClick={() => setModalVisible(true)}>
             JOIN ROOM
             <Diamond className="h-6" />
           </Button>
