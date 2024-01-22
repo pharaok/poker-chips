@@ -3,8 +3,9 @@
 import Table from "@repo/ui/table";
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../../socket";
-import { Player } from "../../../../server/src/types"; // HACK:
+import { Room } from "../../../../server/src/room"; // HACK:
 import Button from "@repo/ui/button";
+import { StepForward } from "lucide-react";
 
 const getPointOnPill = (
   clientWidth: number,
@@ -74,70 +75,113 @@ const getPointOnPill = (
   return [x, y].map((p) => p * perimeter);
 };
 
-export default function Room({ params }: { params: { code: string } }) {
-  const [players, setPlayers] = useState<Player[]>([]);
+export default function Page({ params }: { params: { code: string } }) {
+  const [room, setRoom] = useState<Room | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
-  const rotatePlayers = (ps: Player[]) => {
-    const i = ps.findIndex((p) => p.id == socket.id);
-    return ps.slice(i).concat(ps.slice(0, i));
-  };
+  const j = room?.players.findIndex((p) => p.id === socket.id);
 
   useEffect(() => {
     socket.emit(
       "joinRoom",
       localStorage.getItem("name") || "Player",
       params.code,
-      (ps) => setPlayers(rotatePlayers(ps)),
+      (room) => {
+        setRoom(room);
+        setIsAdmin(room.players[0]!.id === socket.id);
+      },
     );
-    socket.on("updatePlayers", (ps) => setPlayers(rotatePlayers(ps)));
+    socket.on("updateRoom", (room) => {
+      setRoom(room);
+      setIsAdmin(room.players[0]!.id === socket.id);
+    });
     return () => {
-      socket.off("updatePlayers");
+      socket.off("updateRoom");
+      socket.emit("leaveRoom");
     };
   }, []);
 
   return (
     <main className="min-w-screen flex min-h-screen flex-col items-center justify-center">
-      <div className="flex flex-grow items-center justify-center">
+      <div className="relative flex w-full flex-grow items-center justify-center">
         <Table>
-          <div ref={tableRef} className="relative -m-12 h-full w-full">
-            {players.map((p, i, a) => {
-              if (tableRef.current === null) {
-                return;
-              }
-              const { clientWidth, clientHeight } = tableRef.current!;
+          {room && (
+            <>
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-xl text-white">{room.phase}</span>
+                <span className="text-3xl text-white">{room.pot}</span>
+              </div>
+              <div ref={tableRef} className="absolute -m-12 h-full w-full">
+                {room.players.map((p, i, a) => {
+                  if (tableRef.current === null) {
+                    return;
+                  }
+                  const { clientWidth, clientHeight } = tableRef.current!;
 
-              const [x, y] = getPointOnPill(
-                clientWidth,
-                clientHeight,
-                i / a.length,
-              );
-              return (
-                <div
-                  key={i}
-                  className={`absolute flex -translate-x-[50%] -translate-y-[50%] flex-col items-center rounded-xl bg-gray-800/75 px-6 py-2 text-white ${
-                    i === 0 ? "border-8 border-white" : ""
-                  }`}
-                  style={{
-                    left: x,
-                    top: y,
-                  }}
-                >
-                  <span className="text-lg">{p.name}</span>
-                  <span className="text-2xl font-bold">{p.stack}</span>
-                </div>
-              );
-            })}
-          </div>
+                  const [x, y] = getPointOnPill(
+                    clientWidth,
+                    clientHeight,
+                    ((i - j! + a.length) % a.length) / a.length,
+                  );
+                  return (
+                    <div
+                      key={i}
+                      className={`absolute flex -translate-x-[50%] -translate-y-[50%] flex-col items-center rounded-lg bg-gray-800/75 px-6 py-2 text-white ${
+                        i === room.turn ? "border-4 border-white" : ""
+                      }`}
+                      style={{
+                        left: x,
+                        top: y,
+                      }}
+                    >
+                      <div className="flex justify-between gap-2">
+                        <span className="text-lg">{p.name}</span>
+                      </div>
+                      <span className="text-2xl font-bold">{p.stack}</span>
+                      <div className="absolute -right-8 flex flex-col justify-evenly gap-2 [&>*]:flex [&>*]:h-6 [&>*]:w-6 [&>*]:items-center [&>*]:justify-center [&>*]:rounded-full">
+                        {i === room.dealer && (
+                          <div className="bg-white text-gray-800">D</div>
+                        )}
+                        {i === (room.dealer + 1) % room.players.length && (
+                          <div className="bg-blue-600 text-gray-800">SB</div>
+                        )}
+                        {i === (room.dealer + 2) % room.players.length && (
+                          <div className="bg-yellow-600 text-gray-800">BB</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </Table>
+        {isAdmin && (
+          <button
+            className="absolute bottom-4 right-4 flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
+            onClick={() => socket.emit("startGame")}
+          >
+            <StepForward className="h-full w-full fill-white" />
+          </button>
+        )}
       </div>
-      <div className="flex h-24 w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
-        <Button className="bg-green-400 hover:bg-green-500 active:bg-green-600">
+      <div className="flex w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
+        <Button
+          className="bg-green-400 hover:bg-green-500 active:bg-green-600"
+          onClick={() => socket.emit("checkCall")}
+        >
           CHECK
         </Button>
-        <Button className="bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600">
+        <Button
+          className="bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600"
+          onClick={() => socket.emit("raise", 200)}
+        >
           BET
         </Button>
-        <Button className="bg-red-400 hover:bg-red-500 active:bg-red-600">
+        <Button
+          className="bg-red-400 hover:bg-red-500 active:bg-red-600"
+          onClick={() => socket.emit("fold")}
+        >
           FOLD
         </Button>
       </div>

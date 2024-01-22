@@ -1,7 +1,13 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { ClientToServerEvents, Player, ServerToClientEvents } from "./types.js";
+import {
+  ClientToServerEvents,
+  Socket,
+  Player,
+  ServerToClientEvents,
+} from "./types.js";
 import { nanoid } from "nanoid";
+import { Room } from "./room.js";
 
 const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
@@ -11,19 +17,32 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
   },
 );
 
-const rooms: { [id: string]: Player[] } = {};
+const rooms: { [id: string]: Room } = {};
 const playerRoom: { [id: string]: string } = {};
+
+const leaveRoom = (socket: Socket) => {
+  const rId = playerRoom[socket.id];
+  if (rId && rooms[rId]) {
+    socket.leave(rId);
+    rooms[rId]?.leaveTable(socket.id);
+    socket.to(rId).emit("updateRoom", rooms[rId]!);
+    if (rooms[rId]!.players.length === 0) {
+      delete rooms[rId];
+    }
+  }
+  delete playerRoom[socket.id];
+};
 
 io.on("connection", (socket) => {
   socket.on("createRoom", (callback) => {
     const id = nanoid(8);
-    rooms[id] = [];
+    rooms[id] = new Room();
 
     callback(id);
   });
   socket.on("joinRoom", (name, rId, callback) => {
     if (!rooms[rId]) {
-      rooms[rId] = [];
+      rooms[rId] = new Room();
     }
     // leave all other rooms
     socket.rooms.forEach((room) => {
@@ -31,27 +50,74 @@ io.on("connection", (socket) => {
         socket.leave(room);
       }
     });
-    const player: Player = { id: socket.id, name, stack: 10000 };
-    if (!rooms[rId]!.some((p) => p.id == socket.id)) {
-      rooms[rId]!.push(player);
+    const player: Player = {
+      id: socket.id,
+      name,
+      stack: 10000,
+      roundBet: 0,
+      didFold: false,
+    };
+    if (!rooms[rId]!.players.some((p) => p.id == socket.id)) {
+      rooms[rId]!.players.push(player);
       playerRoom[socket.id] = rId;
     }
     socket.join(rId);
     callback(rooms[rId]!);
-    socket.to(rId).emit("updatePlayers", rooms[rId]!);
-    console.log("someone joined", rId, rooms);
+    socket.to(rId).emit("updateRoom", rooms[rId]!);
   });
 
-  socket.on("disconnect", () => {
+  socket.on("startGame", () => {
     const rId = playerRoom[socket.id];
-    if (rId && rooms[rId]) {
-      rooms[rId] = rooms[rId]!.filter((p) => p.id !== socket.id);
-      if (rooms[rId]!.length === 0) {
-        delete rooms[rId];
-      }
-      socket.to(rId).emit("updatePlayers", rooms[rId]!);
-    }
-    delete playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.players[0]?.id) return;
+
+    room.startGame();
+
+    io.to(rId).emit("updateRoom", room);
+  });
+  socket.on("checkCall", () => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.players[room.turn]?.id) return;
+
+    room.callRaise();
+
+    io.to(rId).emit("updateRoom", room);
+  });
+  socket.on("raise", (amount) => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.players[room.turn]?.id) return;
+
+    room.callRaise(amount);
+
+    io.to(rId).emit("updateRoom", room);
+  });
+  socket.on("fold", () => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.players[room.turn]?.id) return;
+
+    room.fold();
+
+    io.to(rId).emit("updateRoom", room);
+  });
+  socket.on("chooseWinner", (p) => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    room.chooseWinner(p);
+  });
+
+  socket.on("leaveRoom", () => {
+    leaveRoom(socket);
+  });
+  socket.on("disconnect", () => {
+    leaveRoom(socket);
   });
 });
 

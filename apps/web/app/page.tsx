@@ -23,7 +23,7 @@ export default function Page() {
   return (
     <main className="min-w-screen flex min-h-screen items-center justify-center p-4">
       <Table>
-        <div className="flex w-96 flex-col justify-center gap-4 p-12 text-2xl">
+        <div className="flex w-96 flex-col justify-center gap-4 p-8 text-2xl">
           {/* HACK: */}
           <input
             placeholder="NAME"
