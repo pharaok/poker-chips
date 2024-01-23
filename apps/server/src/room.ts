@@ -76,6 +76,10 @@ export class Room {
       if (this.turn === this.lastRaiser) {
         this.turn = (this.dealer + 1) % this.players.length;
         this.lastRaiser = this.turn;
+        this.roundBet = 0;
+        this.players.forEach((p) => {
+          p.roundBet = 0;
+        });
         this.phase += 1;
         break;
       }
@@ -84,7 +88,7 @@ export class Room {
 
   callRaise(amount = 0) {
     // TODO: sidepots
-    if (this.phase === 5) return;
+    if (this.phase === 0 || this.phase === 5) return;
     const player = this.players[this.turn]!;
     if (player.didFold) return;
     if (player.stack < amount) return;
@@ -100,7 +104,7 @@ export class Room {
   }
 
   fold() {
-    if (this.phase === 5) return;
+    if (this.phase === 0 || this.phase === 5) return;
     this.players[this.turn]!.didFold = true;
     this.advanceTurn();
 

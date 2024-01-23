@@ -87,6 +87,12 @@ export default function Page({ params }: { params: { code: string } }) {
 
   const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const [betAmount, setBetAmount] = useState(0);
+  const minBet = (room && Math.max(room.roundBet, room.bigBlind)) || 0;
+  const maxBet =
+    (j !== undefined &&
+      room!.players[j]!.stack -
+        (room!.roundBet - room!.players[j]!.roundBet)) ||
+    0;
 
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -185,7 +191,7 @@ export default function Page({ params }: { params: { code: string } }) {
         <Button
           className="bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600"
           onPress={() => {
-            setBetAmount(0);
+            setBetAmount(minBet);
             setIsBetModalOpen(true);
           }}
         >
@@ -208,13 +214,8 @@ export default function Page({ params }: { params: { code: string } }) {
             value={betAmount}
             onChange={setBetAmount}
             className="col-span-full"
-            minValue={room?.bigBlind || 1}
-            maxValue={
-              (j !== undefined &&
-                room!.players[j]!.stack -
-                  (room!.roundBet - room!.players[j]!.roundBet)) ||
-              1
-            }
+            minValue={minBet}
+            maxValue={maxBet}
           >
             <Input className="col-span-full" />
           </NumberField>
@@ -223,15 +224,17 @@ export default function Page({ params }: { params: { code: string } }) {
             onChange={setBetAmount}
             className="col-span-full my-2"
             step={room?.bigBlind || 1}
-            minValue={room?.bigBlind || 1}
-            maxValue={(j !== undefined && room!.players[j!]!.stack) || 1}
+            minValue={minBet}
+            maxValue={maxBet}
           />
           <Button
             onPressStart={() => {
               setBetAmount((b) => b - room!.bigBlind);
               holdTimeoutRef.current = setTimeout(() => {
                 holdIntervalRef.current = setInterval(() => {
-                  setBetAmount((b) => b - room!.bigBlind);
+                  setBetAmount((b) =>
+                    Math.max(minBet, Math.min(b - room!.bigBlind, maxBet)),
+                  );
                 }, 50);
               }, 300);
             }}
@@ -249,7 +252,9 @@ export default function Page({ params }: { params: { code: string } }) {
               setBetAmount((b) => b + room!.bigBlind);
               holdTimeoutRef.current = setTimeout(() => {
                 holdIntervalRef.current = setInterval(() => {
-                  setBetAmount((b) => b + room!.bigBlind);
+                  setBetAmount((b) =>
+                    Math.max(minBet, Math.min(b + room!.bigBlind, maxBet)),
+                  );
                 }, 50);
               }, 300);
             }}
@@ -307,7 +312,7 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
           <div className="col-span-full m-1 h-px bg-gray-600"></div>
           <Button
-            className="col-span-2"
+            className="col-span-2 bg-gray-200 text-gray-900 hover:bg-gray-400"
             onPress={() => {
               setIsBetModalOpen(false);
               socket.emit("raise", betAmount);
