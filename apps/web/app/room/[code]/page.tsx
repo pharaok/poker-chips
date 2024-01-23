@@ -5,11 +5,12 @@ import Input from "@repo/ui/input";
 import Modal from "@repo/ui/modal";
 import Slider from "@repo/ui/slider";
 import Table from "@repo/ui/table";
+import Tooltip from "@repo/ui/tooltip";
 import { StepForward } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { NumberField, TooltipTrigger } from "react-aria-components";
 import { Room } from "../../../../server/src/room"; // HACK:
 import { socket } from "../../socket";
-import { NumberField } from "react-aria-components";
 
 const getPointOnPill = (
   clientWidth: number,
@@ -87,12 +88,10 @@ export default function Page({ params }: { params: { code: string } }) {
 
   const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const [betAmount, setBetAmount] = useState(0);
+  const callAmount =
+    (room && room!.roundBet - room!.players[j!]!.roundBet) || 0;
   const minBet = (room && Math.max(room.roundBet, room.bigBlind)) || 0;
-  const maxBet =
-    (j !== undefined &&
-      room!.players[j]!.stack -
-        (room!.roundBet - room!.players[j]!.roundBet)) ||
-    0;
+  const maxBet = (j !== undefined && room!.players[j]!.stack - callAmount) || 0;
 
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -182,23 +181,26 @@ export default function Page({ params }: { params: { code: string } }) {
         )}
       </div>
       <div className="flex w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
+        <TooltipTrigger isOpen={callAmount > 0}>
+          <Tooltip>{callAmount}</Tooltip>
+          <Button
+            className="w-28 bg-green-400 hover:bg-green-500"
+            onPress={() => socket.emit("checkCall")}
+          >
+            {callAmount > 0 ? "CALL" : "CHECK"}
+          </Button>
+        </TooltipTrigger>
         <Button
-          className="bg-green-400 hover:bg-green-500 active:bg-green-600"
-          onPress={() => socket.emit("checkCall")}
-        >
-          CHECK
-        </Button>
-        <Button
-          className="bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600"
+          className="w-28 bg-yellow-400 hover:bg-yellow-500"
           onPress={() => {
             setBetAmount(minBet);
             setIsBetModalOpen(true);
           }}
         >
-          BET
+          {callAmount > 0 ? "RAISE" : "BET"}
         </Button>
         <Button
-          className="bg-red-400 hover:bg-red-500 active:bg-red-600"
+          className="w-28 bg-red-400 hover:bg-red-500"
           onPress={() => socket.emit("fold")}
         >
           FOLD
@@ -314,6 +316,7 @@ export default function Page({ params }: { params: { code: string } }) {
           <Button
             className="col-span-2 bg-gray-200 text-gray-900 hover:bg-gray-400"
             onPress={() => {
+              console.log("raising", betAmount);
               setIsBetModalOpen(false);
               socket.emit("raise", betAmount);
             }}
