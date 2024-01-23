@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "lucide-react": "^0.312.0",
+    "react-aria-components": "^1.0.1",
     "tailwind-merge": "^2.2.0"
   }
 }
