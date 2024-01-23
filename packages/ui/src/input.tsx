@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 export default function Input({
   className,
   ...props
-}: { className: string } & Omit<InputProps, "className">) {
+}: { className?: string } & Omit<InputProps, "className">) {
   return (
     <RAInput
       {...props}

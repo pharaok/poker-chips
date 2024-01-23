@@ -14,7 +14,8 @@
     "./button": "./src/button.tsx",
     "./table": "./src/table.tsx",
     "./modal": "./src/modal.tsx",
-    "./input": "./src/input.tsx"
+    "./input": "./src/input.tsx",
+    "./slider": "./src/slider.tsx"
   },
   "scripts": {
     "build": "tailwindcss -i ./src/styles.css -o dist/index.css",

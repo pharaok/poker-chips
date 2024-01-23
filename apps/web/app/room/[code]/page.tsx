@@ -1,11 +1,15 @@
 "use client";
 
-import Table from "@repo/ui/table";
-import { useEffect, useRef, useState } from "react";
-import { socket } from "../../socket";
-import { Room } from "../../../../server/src/room"; // HACK:
 import Button from "@repo/ui/button";
+import Input from "@repo/ui/input";
+import Modal from "@repo/ui/modal";
+import Slider from "@repo/ui/slider";
+import Table from "@repo/ui/table";
 import { StepForward } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Room } from "../../../../server/src/room"; // HACK:
+import { socket } from "../../socket";
+import { NumberField } from "react-aria-components";
 
 const getPointOnPill = (
   clientWidth: number,
@@ -80,6 +84,12 @@ export default function Page({ params }: { params: { code: string } }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const j = room?.players.findIndex((p) => p.id === socket.id);
+
+  const [isBetModalOpen, setIsBetModalOpen] = useState(false);
+  const [betAmount, setBetAmount] = useState(0);
+
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     socket.emit(
@@ -157,34 +167,156 @@ export default function Page({ params }: { params: { code: string } }) {
           )}
         </Table>
         {isAdmin && (
-          <button
+          <Button
             className="absolute bottom-4 right-4 flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
-            onClick={() => socket.emit("startGame")}
+            onPress={() => socket.emit("startGame")}
           >
             <StepForward className="h-full w-full fill-white" />
-          </button>
+          </Button>
         )}
       </div>
       <div className="flex w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
         <Button
           className="bg-green-400 hover:bg-green-500 active:bg-green-600"
-          onClick={() => socket.emit("checkCall")}
+          onPress={() => socket.emit("checkCall")}
         >
           CHECK
         </Button>
         <Button
           className="bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600"
-          onClick={() => socket.emit("raise", 200)}
+          onPress={() => {
+            setBetAmount(0);
+            setIsBetModalOpen(true);
+          }}
         >
           BET
         </Button>
         <Button
           className="bg-red-400 hover:bg-red-500 active:bg-red-600"
-          onClick={() => socket.emit("fold")}
+          onPress={() => socket.emit("fold")}
         >
           FOLD
         </Button>
       </div>
+      <Modal
+        visible={isBetModalOpen}
+        setVisible={setIsBetModalOpen}
+        title="BET"
+      >
+        <div className="grid grid-cols-2 gap-2">
+          <NumberField
+            value={betAmount}
+            onChange={setBetAmount}
+            className="col-span-full"
+            minValue={room?.bigBlind || 1}
+            maxValue={
+              (j !== undefined &&
+                room!.players[j]!.stack -
+                  (room!.roundBet - room!.players[j]!.roundBet)) ||
+              1
+            }
+          >
+            <Input className="col-span-full" />
+          </NumberField>
+          <Slider
+            value={betAmount}
+            onChange={setBetAmount}
+            className="col-span-full my-2"
+            step={room?.bigBlind || 1}
+            minValue={room?.bigBlind || 1}
+            maxValue={(j !== undefined && room!.players[j!]!.stack) || 1}
+          />
+          <Button
+            onPressStart={() => {
+              setBetAmount((b) => b - room!.bigBlind);
+              holdTimeoutRef.current = setTimeout(() => {
+                holdIntervalRef.current = setInterval(() => {
+                  setBetAmount((b) => b - room!.bigBlind);
+                }, 50);
+              }, 300);
+            }}
+            onPressEnd={() => {
+              clearTimeout(holdTimeoutRef.current!);
+              clearInterval(holdIntervalRef.current!);
+              holdTimeoutRef.current = null;
+              holdIntervalRef.current = null;
+            }}
+          >
+            -BIG
+          </Button>
+          <Button
+            onPressStart={() => {
+              setBetAmount((b) => b + room!.bigBlind);
+              holdTimeoutRef.current = setTimeout(() => {
+                holdIntervalRef.current = setInterval(() => {
+                  setBetAmount((b) => b + room!.bigBlind);
+                }, 50);
+              }, 300);
+            }}
+            onPressEnd={() => {
+              clearTimeout(holdTimeoutRef.current!);
+              clearInterval(holdIntervalRef.current!);
+              holdTimeoutRef.current = null;
+              holdIntervalRef.current = null;
+            }}
+          >
+            +BIG
+          </Button>
+
+          <Button
+            onPress={() => {
+              setBetAmount(
+                Math.floor(room!.pot / 3 / room!.bigBlind) * room!.bigBlind,
+              );
+            }}
+          >
+            1/3
+          </Button>
+          <Button
+            onPress={() => {
+              setBetAmount(
+                Math.floor(room!.pot / 2 / room!.bigBlind) * room!.bigBlind,
+              );
+            }}
+          >
+            1/2
+          </Button>
+          <Button
+            onPress={() => {
+              setBetAmount(
+                Math.floor((2 * room!.pot) / 3 / room!.bigBlind) *
+                  room!.bigBlind,
+              );
+            }}
+          >
+            2/3
+          </Button>
+          <Button onPress={() => setBetAmount(Math.floor(room!.pot))}>
+            POT
+          </Button>
+          <Button
+            onPress={() =>
+              setBetAmount(
+                room!.players[j!]!.stack -
+                  (room!.roundBet - room!.players[j!]!.roundBet),
+              )
+            }
+            className="col-span-full"
+          >
+            ALL IN
+          </Button>
+          <div className="col-span-full m-1 h-px bg-gray-600"></div>
+          <Button
+            className="col-span-2"
+            onPress={() => {
+              setIsBetModalOpen(false);
+              socket.emit("raise", betAmount);
+            }}
+          >
+            CONFIRM
+          </Button>
+        </div>
+      </Modal>
     </main>
   );
 }

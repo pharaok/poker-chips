@@ -6,7 +6,7 @@ export default function Button({
   className,
   children,
   ...props
-}: { card?: true; className: string } & Omit<ButtonProps, "className">) {
+}: { card?: true; className?: string } & Omit<ButtonProps, "className">) {
   return (
     <RAButton
       {...props}
