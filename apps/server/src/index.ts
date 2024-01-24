@@ -5,9 +5,9 @@ import {
   Socket,
   Player,
   ServerToClientEvents,
-} from "./types.js";
+} from "@repo/utils";
 import { nanoid } from "nanoid";
-import { Room } from "./room.js";
+import { Room } from "@repo/utils/room";
 
 const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
@@ -55,6 +55,7 @@ io.on("connection", (socket) => {
       name,
       stack: 10000,
       roundBet: 0,
+      potContribution: 0,
       didFold: false,
     };
     if (!rooms[rId]!.players.some((p) => p.id == socket.id)) {
@@ -63,7 +64,7 @@ io.on("connection", (socket) => {
     }
     socket.join(rId);
     callback(rooms[rId]!);
-    socket.to(rId).emit("updateRoom", rooms[rId]!);
+    io.to(rId).emit("updateRoom", rooms[rId]!);
   });
 
   socket.on("startGame", () => {
@@ -106,11 +107,14 @@ io.on("connection", (socket) => {
 
     io.to(rId).emit("updateRoom", room);
   });
-  socket.on("chooseWinner", (p) => {
+  socket.on("selectWinners", (ps) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    room.chooseWinner(p);
+    if (socket.id !== room.players[0]?.id) return;
+
+    room.chooseWinner(ps);
+    io.to(rId).emit("updateRoom", room);
   });
 
   socket.on("leaveRoom", () => {

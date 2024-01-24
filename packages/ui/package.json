@@ -12,6 +12,7 @@
     "./heart": "./src/heart.tsx",
     "./spade": "./src/spade.tsx",
     "./button": "./src/button.tsx",
+    "./toggleButton": "./src/toggleButton.tsx",
     "./table": "./src/table.tsx",
     "./modal": "./src/modal.tsx",
     "./input": "./src/input.tsx",

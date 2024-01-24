@@ -2,20 +2,21 @@
   "name": "server",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "nodemon -e ts --watch src --exec 'tsc && node ./dist/index.js'"
+    "dev": "nodemon -e ts --watch src --exec 'tsx ./src/index.ts'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@repo/utils": "workspace:*",
     "nanoid": "^5.0.4",
     "socket.io": "^4.7.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
     "nodemon": "^3.0.2",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }
 }

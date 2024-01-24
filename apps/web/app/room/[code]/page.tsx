@@ -9,76 +9,10 @@ import Tooltip from "@repo/ui/tooltip";
 import { StepForward } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NumberField, TooltipTrigger } from "react-aria-components";
-import { Room } from "../../../../server/src/room"; // HACK:
+import { Room } from "@repo/utils/room";
 import { socket } from "../../socket";
-
-const getPointOnPill = (
-  clientWidth: number,
-  clientHeight: number,
-  distance: number,
-) => {
-  const isPortrait = clientHeight > clientWidth;
-
-  let sideLength = Math.abs(clientWidth - clientHeight);
-  let pillRadius = Math.min(clientWidth, clientHeight) / 2;
-  const perimeter = 2 * Math.PI * pillRadius + 2 * sideLength;
-  sideLength /= perimeter;
-  pillRadius /= perimeter;
-
-  // start from bottom middle;
-  if (isPortrait) {
-    distance += sideLength + 0.5 * Math.PI * pillRadius;
-  } else {
-    distance += sideLength * 1.5 + Math.PI * pillRadius;
-  }
-  distance %= 1;
-
-  // HACK:-y?
-  let segments: { length: number; delta: (d: number) => [number, number] }[] = [
-    {
-      length: sideLength,
-      delta: (d: number) => [d, 0],
-    },
-    {
-      length: Math.PI * pillRadius,
-      delta: (d: number) => {
-        let arcLength = d / pillRadius;
-        return [
-          Math.sin(arcLength) * pillRadius,
-          -(Math.cos(arcLength) - 1) * pillRadius,
-        ];
-      },
-    },
-    {
-      length: sideLength,
-      delta: (d: number) => [-d, 0],
-    },
-    {
-      length: Math.PI * pillRadius,
-      delta: (d: number) => {
-        let arcLength = d / pillRadius;
-        return [
-          -Math.sin(arcLength) * pillRadius,
-          (Math.cos(arcLength) - 1) * pillRadius,
-        ];
-      },
-    },
-  ];
-
-  let [x, y] = [pillRadius, 0];
-  segments.forEach((seg) => {
-    const d = Math.min(distance, seg.length);
-    const [dx, dy] = seg.delta(d);
-    x += dx;
-    y += dy;
-    distance -= d;
-  });
-
-  if (isPortrait) {
-    return [clientWidth - y * perimeter, x * perimeter];
-  }
-  return [x, y].map((p) => p * perimeter);
-};
+import { getPointOnPill } from "@repo/utils";
+import SelectWinnersModal from "./selectWinnersModal";
 
 export default function Page({ params }: { params: { code: string } }) {
   const [room, setRoom] = useState<Room | null>(null);
@@ -95,6 +29,8 @@ export default function Page({ params }: { params: { code: string } }) {
 
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isDisabled = room?.phase === 0 || room?.phase === 5 || room?.turn !== j;
 
   useEffect(() => {
     socket.emit(
@@ -123,7 +59,13 @@ export default function Page({ params }: { params: { code: string } }) {
           {room && (
             <>
               <div className="flex flex-col items-center gap-2">
-                <span className="text-xl text-white">{room.phase}</span>
+                <span className="text-xl text-white">
+                  {
+                    ["PREGAME", "PREFLOP", "FLOP", "TURN", "RIVER", "POSTGAME"][
+                      room.phase
+                    ]
+                  }
+                </span>
                 <span className="text-3xl text-white">{room.pot}</span>
               </div>
               <div ref={tableRef} className="absolute -m-12 h-full w-full">
@@ -184,14 +126,16 @@ export default function Page({ params }: { params: { code: string } }) {
         <TooltipTrigger isOpen={callAmount > 0}>
           <Tooltip>{callAmount}</Tooltip>
           <Button
-            className="w-28 bg-green-400 hover:bg-green-500"
+            className="w-28 bg-green-400 hover:bg-green-500 disabled:bg-green-800"
+            isDisabled={isDisabled}
             onPress={() => socket.emit("checkCall")}
           >
             {callAmount > 0 ? "CALL" : "CHECK"}
           </Button>
         </TooltipTrigger>
         <Button
-          className="w-28 bg-yellow-400 hover:bg-yellow-500"
+          className="w-28 bg-yellow-400 hover:bg-yellow-500 disabled:bg-yellow-800"
+          isDisabled={isDisabled}
           onPress={() => {
             setBetAmount(minBet);
             setIsBetModalOpen(true);
@@ -200,7 +144,8 @@ export default function Page({ params }: { params: { code: string } }) {
           {callAmount > 0 ? "RAISE" : "BET"}
         </Button>
         <Button
-          className="w-28 bg-red-400 hover:bg-red-500"
+          className="w-28 bg-red-400 hover:bg-red-500 disabled:bg-red-800"
+          isDisabled={isDisabled}
           onPress={() => socket.emit("fold")}
         >
           FOLD
@@ -314,7 +259,7 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
           <div className="col-span-full m-1 h-px bg-gray-600"></div>
           <Button
-            className="col-span-2 bg-gray-200 text-gray-900 hover:bg-gray-400"
+            className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-400"
             onPress={() => {
               console.log("raising", betAmount);
               setIsBetModalOpen(false);
@@ -325,6 +270,10 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
         </div>
       </Modal>
+      <SelectWinnersModal
+        visible={j === 0 && room?.phase === 5}
+        room={room!}
+      ></SelectWinnersModal>
     </main>
   );
 }
