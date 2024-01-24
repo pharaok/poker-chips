@@ -144,9 +144,8 @@ export class Room {
     const playersEnum = this.players.map((p, i): [number, Player] => [i, p]);
     playersEnum.sort((pa, pb) => pa[1].potContribution - pb[1].potContribution);
     return playersEnum.reduce(
-      (pots, [pi, p]) => {
-        const cpp =
-          p.potContribution - (pots[pots.length - 1]?.contribPerPlayer ?? 0);
+      (pots, [pi, p], i, a) => {
+        const cpp = p.potContribution - (a[i - 1]?.[1].potContribution ?? 0);
         pots.forEach((pot) => {
           pot.players.push(pi);
         });

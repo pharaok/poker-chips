@@ -6,12 +6,12 @@ import Modal from "@repo/ui/modal";
 import Slider from "@repo/ui/slider";
 import Table from "@repo/ui/table";
 import Tooltip from "@repo/ui/tooltip";
+import { getPointOnPill } from "@repo/utils";
+import { Room } from "@repo/utils/room";
 import { StepForward } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NumberField, TooltipTrigger } from "react-aria-components";
-import { Room } from "@repo/utils/room";
 import { socket } from "../../socket";
-import { getPointOnPill } from "@repo/utils";
 import SelectWinnersModal from "./selectWinnersModal";
 
 export default function Page({ params }: { params: { code: string } }) {
@@ -261,9 +261,8 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
           <div className="col-span-full m-1 h-px bg-gray-600"></div>
           <Button
-            className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-400"
+            className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
             onPress={() => {
-              console.log("raising", betAmount);
               setIsBetModalOpen(false);
               socket.emit("raise", betAmount);
             }}
