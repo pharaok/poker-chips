@@ -6,9 +6,9 @@ import Input from "@repo/ui/input";
 import Modal from "@repo/ui/modal";
 import Spade from "@repo/ui/spade";
 import Table from "@repo/ui/table";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { socket } from "./socket";
-import { useRouter } from "next/navigation";
 
 export default function Page() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function Page() {
           ></Input>
           <Button
             card
-            onClick={() => {
+            onPress={() => {
               socket.emit("createRoom", (id: string) => {
                 console.log(id);
                 router.push(`/room/${id}`);
@@ -43,15 +43,16 @@ export default function Page() {
             CREATE ROOM
             <Spade className="h-6" />
           </Button>
-          <Button card onClick={() => setModalVisible(true)}>
+          <Button card onPress={() => setModalVisible(true)}>
             JOIN ROOM
             <Diamond className="h-6" />
           </Button>
         </div>
       </Table>
       <Modal
-        visible={modalVisible}
-        setVisible={setModalVisible}
+        isDismissable
+        isOpen={modalVisible}
+        onOpenChange={setModalVisible}
         title="Room Code"
       >
         <div className="flex w-full flex-col items-center gap-4">
@@ -62,7 +63,7 @@ export default function Page() {
           />
           <Button
             className="self-end"
-            onClick={() => {
+            onPress={() => {
               router.push(`/room/${roomCode}`);
             }}
           >

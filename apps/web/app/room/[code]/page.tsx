@@ -160,18 +160,18 @@ export default function Page({ params }: { params: { code: string } }) {
       </div>
       <BettingModal
         room={room}
-        visible={isBetModalOpen}
-        setVisible={setIsBetModalOpen}
+        isOpen={isBetModalOpen}
+        setOpen={setIsBetModalOpen}
       ></BettingModal>
       <SelectWinnersModal
-        visible={j === 0 && room?.phase === 5}
+        isOpen={j === 0 && room?.phase === 5}
         room={room!}
       ></SelectWinnersModal>
       {room && (
         <AdminModal
           room={room}
-          visible={isAdminModalOpen}
-          setVisible={setIsAdminModalOpen}
+          isOpen={isAdminModalOpen}
+          setOpen={setIsAdminModalOpen}
         ></AdminModal>
       )}
     </main>

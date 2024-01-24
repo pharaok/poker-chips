@@ -9,12 +9,12 @@ import { socket } from "../../socket";
 
 export default function BettingModal({
   room,
-  visible,
-  setVisible,
+  isOpen,
+  setOpen,
 }: {
   room: Room | null;
-  visible: boolean;
-  setVisible: (v: boolean) => void;
+  isOpen: boolean;
+  setOpen: (v: boolean) => void;
 }) {
   const [betAmount, setBetAmount] = useState(0);
   const j = room?.players.findIndex((p) => p.id === socket.id);
@@ -28,11 +28,11 @@ export default function BettingModal({
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (visible) setBetAmount(minBet);
-  }, [visible]);
+    if (isOpen) setBetAmount(minBet);
+  }, [isOpen]);
 
   return (
-    <Modal visible={visible} setVisible={setVisible} title="BET">
+    <Modal isDismissable isOpen={isOpen} onOpenChange={setOpen} title="BET">
       <div className="grid grid-cols-2 gap-2">
         <NumberField
           value={betAmount}
@@ -137,7 +137,7 @@ export default function BettingModal({
         <Button
           className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
           onPress={() => {
-            setVisible(false);
+            setOpen(false);
             socket.emit("raise", betAmount);
           }}
         >

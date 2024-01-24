@@ -8,28 +8,34 @@ import Button from "@repo/ui/button";
 
 export default function AdminModal({
   room,
-  visible,
-  setVisible,
+  isOpen,
+  setOpen,
 }: {
   room: Room;
-  visible: boolean;
-  setVisible: (v: boolean) => void;
+  isOpen: boolean;
+  setOpen: (v: boolean) => void;
 }) {
   const [stacks, setStacks] = useState(room.players.map((p) => p.stack));
   useEffect(() => {
-    if (!visible) {
+    if (!isOpen) {
       setStacks(room.players.map((p) => p.stack));
     }
-  }, [room, visible]);
+  }, [room, isOpen]);
 
   return (
-    <Modal visible={visible} setVisible={setVisible} title="ADMIN MENU">
+    <Modal
+      isDismissable
+      isOpen={isOpen}
+      onOpenChange={setOpen}
+      title="ADMIN MENU"
+    >
       <div className="grid grid-cols-2 gap-2 px-6">
         {room?.players.map((p, i) => {
           return (
             <Fragment key={i}>
               <span>{p.name}</span>
               <NumberField
+                aria-label={`${p.name}'s stack`}
                 value={stacks[i]}
                 onChange={(v) => {
                   setStacks((s) => {
@@ -48,7 +54,7 @@ export default function AdminModal({
       <Button
         className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
         onPress={() => {
-          setVisible(false);
+          setOpen(false);
           stacks.forEach((s, i) => {
             if (s !== room.players[i]?.stack) {
               socket.emit("setStack", i, stacks[i]!);

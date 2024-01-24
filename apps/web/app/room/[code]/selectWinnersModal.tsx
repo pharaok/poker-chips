@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import { socket } from "../../socket";
 
 export default function SelectWinnersModal({
-  visible,
+  isOpen,
   room,
 }: {
-  visible: boolean;
+  isOpen: boolean;
   room: Room | null;
 }) {
   const [winners, setWinners] = useState<(number | null)[]>([]);
@@ -27,7 +27,7 @@ export default function SelectWinnersModal({
   }, [room]);
 
   return (
-    <Modal visible={visible} setVisible={() => null} title="SELECT WINNER">
+    <Modal isOpen={isOpen} title="SELECT WINNER">
       <div className="flex flex-col gap-2">
         {pots &&
           pots.map((pot, potIdx) => {
