@@ -5,12 +5,13 @@ import Table from "@repo/ui/table";
 import Tooltip from "@repo/ui/tooltip";
 import { getPointOnPill } from "@repo/utils";
 import { Room } from "@repo/utils/room";
-import { StepForward } from "lucide-react";
+import { Menu, StepForward } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { TooltipTrigger } from "react-aria-components";
 import { socket } from "../../socket";
 import SelectWinnersModal from "./selectWinnersModal";
 import BettingModal from "./bettingModal";
+import AdminModal from "./adminModal";
 
 export default function Page({ params }: { params: { code: string } }) {
   const [room, setRoom] = useState<Room | null>(null);
@@ -21,6 +22,8 @@ export default function Page({ params }: { params: { code: string } }) {
   const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const callAmount =
     (room && room!.roundBet - room!.players[j!]!.roundBet) || 0;
+
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   const isDisabled = room?.phase === 0 || room?.phase === 5 || room?.turn !== j;
 
@@ -111,12 +114,20 @@ export default function Page({ params }: { params: { code: string } }) {
           )}
         </Table>
         {isAdmin && (
-          <Button
-            className="absolute bottom-4 right-4 flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
-            onPress={() => socket.emit("startGame")}
-          >
-            <StepForward className="h-full w-full fill-white" />
-          </Button>
+          <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+            <Button
+              className="flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
+              onPress={() => setIsAdminModalOpen(true)}
+            >
+              <Menu className="h-full w-full fill-white" />
+            </Button>
+            <Button
+              className="flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
+              onPress={() => socket.emit("startGame")}
+            >
+              <StepForward className="h-full w-full fill-white" />
+            </Button>
+          </div>
         )}
       </div>
       <div className="flex w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
@@ -156,6 +167,13 @@ export default function Page({ params }: { params: { code: string } }) {
         visible={j === 0 && room?.phase === 5}
         room={room!}
       ></SelectWinnersModal>
+      {room && (
+        <AdminModal
+          room={room}
+          visible={isAdminModalOpen}
+          setVisible={setIsAdminModalOpen}
+        ></AdminModal>
+      )}
     </main>
   );
 }

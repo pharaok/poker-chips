@@ -116,6 +116,15 @@ io.on("connection", (socket) => {
     room.chooseWinner(ps);
     io.to(rId).emit("updateRoom", room);
   });
+  socket.on("setStack", (i, stack) => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.players[0]?.id) return;
+
+    room.players[i]!.stack = stack;
+    io.to(rId).emit("updateRoom", room);
+  });
 
   socket.on("leaveRoom", () => {
     leaveRoom(socket);

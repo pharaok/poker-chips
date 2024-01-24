@@ -10,6 +10,7 @@ export interface ClientToServerEvents {
   raise: (amount: number) => void;
   fold: () => void;
   selectWinners: (ps: number[]) => void;
+  setStack: (p: number, stack: number) => void;
 }
 export interface ServerToClientEvents {
   updateRoom: (room: Room) => void;
