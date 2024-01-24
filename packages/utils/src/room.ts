@@ -37,22 +37,11 @@ export class Room {
   startGame() {
     if (this.players.length < 2) return;
     if (this.phase !== 0) return;
-    const d = this.dealer;
-    const p = this.players.length;
-
-    this.players[(d + 1) % p]!.stack -= this.smallBlind;
-    this.players[(d + 1) % p]!.roundBet += this.smallBlind;
-    this.players[(d + 1) % p]!.potContribution += this.smallBlind;
-
-    this.players[(d + 2) % p]!.stack -= this.bigBlind;
-    this.players[(d + 2) % p]!.roundBet += this.bigBlind;
-    this.players[(d + 2) % p]!.potContribution += this.bigBlind;
-
-    this.pot += this.smallBlind + this.bigBlind;
-    this.roundBet = this.bigBlind;
-    this.turn = (d + 3) % p;
-    this.lastRaiser = (d + 3) % p;
     this.phase += 1;
+
+    this.advanceTurn();
+    this.callRaise(this.smallBlind);
+    this.callRaise(this.bigBlind - this.smallBlind);
   }
 
   resetGame() {
