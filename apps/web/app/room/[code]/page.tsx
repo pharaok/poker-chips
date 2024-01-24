@@ -163,6 +163,7 @@ export default function Page({ params }: { params: { code: string } }) {
             className="col-span-full"
             minValue={minBet}
             maxValue={maxBet}
+            aria-label="bet input"
           >
             <Input className="col-span-full" />
           </NumberField>
@@ -173,6 +174,7 @@ export default function Page({ params }: { params: { code: string } }) {
             step={room?.bigBlind || 1}
             minValue={minBet}
             maxValue={maxBet}
+            aria-label="bet slider"
           />
           <Button
             onPressStart={() => {

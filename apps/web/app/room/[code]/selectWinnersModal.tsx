@@ -20,13 +20,17 @@ export default function SelectWinnersModal({
         {pots &&
           pots.map((pot, potIdx) => {
             return (
-              <div className="flex flex-col items-center justify-center gap-2">
+              <div
+                key={potIdx}
+                className="flex flex-col items-center justify-center gap-2"
+              >
                 <h2 className="text-lg">
                   {potIdx === 0 ? "MAIN POT" : `SIDE POT ${potIdx}`}
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {pot.players.map((playerIdx) => (
+                  {pot.players.map((playerIdx, j) => (
                     <ToggleButton
+                      key={j}
                       isSelected={playerIdx === winners[potIdx]}
                       onPress={() => {
                         setWinners((w) => {
@@ -34,7 +38,6 @@ export default function SelectWinnersModal({
                           nextWinners[potIdx] = playerIdx;
                           return nextWinners;
                         });
-                        console.log(Room.prototype.generatePots.call(room));
                       }}
                     >
                       {room.players[playerIdx]!.name}
