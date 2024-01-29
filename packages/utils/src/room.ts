@@ -88,6 +88,7 @@ export class Room {
         this.roundBet = 0;
         this.players.forEach((p) => {
           p.roundBet = 0;
+          p.lastAction = null;
         });
         this.phase += 1;
 

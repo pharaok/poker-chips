@@ -47,6 +47,8 @@ export default function Page({ params }: { params: { code: string } }) {
     };
   }, []);
 
+  console.log(playerIndex);
+
   return (
     <main className="min-w-screen flex min-h-screen flex-col items-center justify-center">
       <h2 className="fixed left-4 top-4 text-2xl text-white">{`#${params.code}`}</h2>
@@ -56,7 +58,7 @@ export default function Page({ params }: { params: { code: string } }) {
             <Player
               key={i}
               room={room}
-              playerIndex={(i - playerIndex! + a.length) % a.length}
+              playerIndex={(i + playerIndex!) % a.length}
             />
           ))}
         >
@@ -67,29 +69,29 @@ export default function Page({ params }: { params: { code: string } }) {
                   room.phase
                 ]}
             </span>
-            <span className="text-3xl">{room?.pot}</span>
+            <span className="text-3xl">{room?.pot.toLocaleString()}</span>
           </div>
         </Table>
         {isAdmin && (
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+          <div className="absolute bottom-4 right-4 flex flex-col gap-2 text-white">
             <Button
-              className="flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
+              className="flex h-12 w-12 rounded-full bg-gray-800 p-3"
               onPress={() => setIsAdminModalOpen(true)}
             >
-              <Menu className="h-full w-full fill-white" />
+              <Menu className="h-full w-full" />
             </Button>
             <Button
-              className="flex h-12 w-12 rounded-full bg-gray-800 p-3 text-white"
+              className="flex h-12 w-12 rounded-full bg-gray-800 p-3"
               onPress={() => socket.emit("startGame")}
             >
-              <StepForward className="h-full w-full fill-white" />
+              <StepForward className="h-full w-full fill-current" />
             </Button>
           </div>
         )}
       </div>
       <div className="flex w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
         <TooltipTrigger isOpen={callAmount > 0}>
-          <Tooltip>{callAmount}</Tooltip>
+          <Tooltip>{callAmount.toLocaleString()}</Tooltip>
           <Button
             className="w-28 bg-green-400 hover:bg-green-500 disabled:bg-green-800"
             isDisabled={isDisabled}

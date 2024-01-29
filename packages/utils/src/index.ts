@@ -90,3 +90,15 @@ export const getPointOnPill = (
   }
   return [x, y].map((p) => p * perimeter);
 };
+
+export const formatNumberKMB = (n: number) => {
+  const digits = Math.floor(Math.log10(n));
+  const map: [string, number][] = [
+    ["B", 9],
+    ["M", 6],
+    ["K", 3],
+  ];
+  const suffix = map.find(([_, d]) => digits >= d)!;
+  if (suffix) return (n / Math.pow(10, suffix[1])).toFixed(1) + suffix[0];
+  return n.toString();
+};
