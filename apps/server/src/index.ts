@@ -87,6 +87,7 @@ io.on("connection", (socket) => {
     if (socket.id !== room.players[room.turn]?.id) return;
 
     room.callRaise();
+    room.advanceTurn();
 
     io.to(rId).emit("updateRoom", room);
   });
@@ -97,6 +98,7 @@ io.on("connection", (socket) => {
     if (socket.id !== room.players[room.turn]?.id) return;
 
     room.callRaise(amount);
+    room.advanceTurn();
 
     io.to(rId).emit("updateRoom", room);
   });
@@ -107,6 +109,7 @@ io.on("connection", (socket) => {
     if (socket.id !== room.players[room.turn]?.id) return;
 
     room.fold();
+    room.advanceTurn();
 
     io.to(rId).emit("updateRoom", room);
   });

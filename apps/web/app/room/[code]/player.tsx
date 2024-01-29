@@ -15,12 +15,17 @@ export default function Player({
     case "call":
       popupClassName = "text-gray-800 before:shadow-green-400";
       break;
+    case "all in":
     case "bet":
     case "raise":
       popupClassName = "text-gray-800 before:shadow-yellow-400";
       break;
     case "fold":
       popupClassName = "text-gray-800 before:shadow-red-400";
+      break;
+    case "small blind":
+    case "big blind":
+      popupClassName = "text-gray-800 before:shadow-blue-400";
       break;
     default:
       popupClassName = "before:shadow-gray-800";

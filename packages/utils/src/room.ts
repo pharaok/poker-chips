@@ -3,7 +3,10 @@ type Action =
   | { kind: "check" }
   | { kind: "bet"; amount: number }
   | { kind: "raise"; amount: number }
-  | { kind: "fold" };
+  | { kind: "fold" }
+  | { kind: "all in" }
+  | { kind: "small blind" }
+  | { kind: "big blind" };
 
 export interface Player {
   id: string;
@@ -56,7 +59,11 @@ export class Room {
 
     this.advanceTurn();
     this.callRaise(this.smallBlind);
+    this.players[this.turn]!.lastAction = { kind: "small blind" };
+    this.advanceTurn();
     this.callRaise(this.bigBlind - this.smallBlind);
+    this.players[this.turn]!.lastAction = { kind: "big blind" };
+    this.advanceTurn();
     this.lastRaiser = this.turn;
   }
 
@@ -78,7 +85,7 @@ export class Room {
     });
   }
 
-  private advanceTurn() {
+  advanceTurn() {
     do {
       this.turn += 1;
       this.turn %= this.players.length;
@@ -114,13 +121,13 @@ export class Room {
     const total = Math.min(player.stack, toCall + amount);
 
     if (amount) {
+      this.lastRaiser = this.turn;
+
       if (this.roundBet) {
         player.lastAction = { kind: "raise", amount };
       } else {
         player.lastAction = { kind: "bet", amount };
       }
-
-      this.lastRaiser = this.turn;
     } else {
       if (this.roundBet) {
         player.lastAction = { kind: "call" };
@@ -135,14 +142,15 @@ export class Room {
     this.pot += total;
     this.roundBet += amount;
 
-    this.advanceTurn();
+    if (player.stack === 0) {
+      player.lastAction = { kind: "all in" };
+    }
   }
 
   fold() {
     if (this.phase === 0 || this.phase === 5) return;
     this.players[this.turn]!.didFold = true;
     this.players[this.turn]!.lastAction = { kind: "fold" };
-    this.advanceTurn();
 
     if (this.players.reduce((s, p) => s + +!p.didFold, 0) === 1) {
       const lastPlayerIndex = this.players.findIndex((p) => !p.didFold);
