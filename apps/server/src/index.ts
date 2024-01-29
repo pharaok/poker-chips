@@ -3,11 +3,10 @@ import { Server } from "socket.io";
 import {
   ClientToServerEvents,
   Socket,
-  Player,
   ServerToClientEvents,
 } from "@repo/utils";
 import { nanoid } from "nanoid";
-import { Room } from "@repo/utils/room";
+import { Room, Player } from "@repo/utils/room";
 
 const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
@@ -60,6 +59,7 @@ io.on("connection", (socket) => {
       roundBet: 0,
       potContribution: 0,
       didFold: false,
+      lastAction: null,
     };
     if (!rooms[rId]!.players.some((p) => p.id == socket.id)) {
       rooms[rId]!.players.push(player);

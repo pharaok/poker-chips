@@ -16,14 +16,6 @@ export interface ServerToClientEvents {
   updateRoom: (room: Room) => void;
 }
 
-export interface Player {
-  id: string;
-  name: string;
-  stack: number;
-  roundBet: number;
-  potContribution: number;
-  didFold: boolean;
-}
 export type Socket = SocketIO<
   ClientToServerEvents,
   ServerToClientEvents,

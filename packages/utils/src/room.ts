@@ -1,4 +1,19 @@
-import { Player } from "./index";
+type Action =
+  | { kind: "call" }
+  | { kind: "check" }
+  | { kind: "bet"; amount: number }
+  | { kind: "raise"; amount: number }
+  | { kind: "fold" };
+
+export interface Player {
+  id: string;
+  name: string;
+  stack: number;
+  roundBet: number;
+  potContribution: number;
+  didFold: boolean;
+  lastAction: Action | null;
+}
 
 export class Room {
   buyIn: number;
@@ -92,19 +107,35 @@ export class Room {
     const toCall = this.roundBet - player.roundBet;
     const total = Math.min(player.stack, toCall + amount);
 
+    if (amount) {
+      if (this.roundBet) {
+        player.lastAction = { kind: "raise", amount };
+      } else {
+        player.lastAction = { kind: "bet", amount };
+      }
+
+      this.lastRaiser = this.turn;
+    } else {
+      if (this.roundBet) {
+        player.lastAction = { kind: "call" };
+      } else {
+        player.lastAction = { kind: "check" };
+      }
+    }
+
     player.stack -= total;
     player.roundBet += total;
     player.potContribution += total;
     this.pot += total;
     this.roundBet += amount;
 
-    if (amount) this.lastRaiser = this.turn;
     this.advanceTurn();
   }
 
   fold() {
     if (this.phase === 0 || this.phase === 5) return;
     this.players[this.turn]!.didFold = true;
+    this.players[this.turn]!.lastAction = { kind: "fold" };
     this.advanceTurn();
 
     if (this.players.reduce((s, p) => s + +!p.didFold, 0) === 1) {
