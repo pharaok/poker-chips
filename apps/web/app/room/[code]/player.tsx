@@ -22,6 +22,9 @@ export default function Player({
     case "fold":
       popupClassName = "text-gray-800 before:shadow-red-400";
       break;
+    default:
+      popupClassName = "before:shadow-gray-800";
+      break;
   }
   return (
     <div className="text-xl">

@@ -47,8 +47,6 @@ export default function Page({ params }: { params: { code: string } }) {
     };
   }, []);
 
-  console.log(playerIndex);
-
   return (
     <main className="min-w-screen flex min-h-screen flex-col items-center justify-center">
       <h2 className="fixed left-4 top-4 text-2xl text-white">{`#${params.code}`}</h2>

@@ -74,6 +74,7 @@ export class Room {
       p.didFold = false;
       p.roundBet = 0;
       p.potContribution = 0;
+      p.lastAction = null;
     });
   }
 
@@ -83,6 +84,10 @@ export class Room {
       this.turn %= this.players.length;
 
       if (this.turn === this.lastRaiser) {
+        if (this.players.reduce((s, p) => s + +(p.stack > 0), 0) === 1) {
+          this.phase = 5;
+          return;
+        }
         this.turn = (this.dealer + 1) % this.players.length;
         this.lastRaiser = this.turn;
         this.roundBet = 0;
@@ -165,9 +170,12 @@ export class Room {
   generatePots() {
     const playersEnum = this.players.map((p, i): [number, Player] => [i, p]);
     playersEnum.sort((pa, pb) => pa[1].potContribution - pb[1].potContribution);
+    // WARN: O(n^2)
     return playersEnum.reduce(
-      (pots, [pi, p], i, a) => {
-        const cpp = p.potContribution - (a[i - 1]?.[1].potContribution ?? 0);
+      (pots, [pi, p]) => {
+        if (p.didFold) return pots;
+        const cpp =
+          p.potContribution - pots.reduce((s, p) => s + p.contribPerPlayer, 0);
         pots.forEach((pot) => {
           pot.players.push(pi);
         });
