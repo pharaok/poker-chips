@@ -13,6 +13,9 @@ const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
   server,
   {
+    connectionStateRecovery: {
+      maxDisconnectionDuration: 5 * 60 * 1000,
+    },
     cors: { origin: "*" },
   },
 );
@@ -25,7 +28,7 @@ const leaveRoom = (socket: Socket) => {
   if (rId && rooms[rId]) {
     socket.leave(rId);
     rooms[rId]?.leaveTable(socket.id);
-    socket.to(rId).emit("updateRoom", rooms[rId]!);
+    io.to(rId).emit("updateRoom", rooms[rId]!);
     if (rooms[rId]!.players.length === 0) {
       delete rooms[rId];
     }

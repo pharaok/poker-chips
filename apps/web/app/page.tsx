@@ -35,7 +35,6 @@ export default function Page() {
             card
             onPress={() => {
               socket.emit("createRoom", (id: string) => {
-                console.log(id);
                 router.push(`/room/${id}`);
               });
             }}

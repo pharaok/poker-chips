@@ -52,66 +52,60 @@ export default function Page({ params }: { params: { code: string } }) {
       <h2 className="fixed left-4 top-4 text-2xl text-white">{`#${params.code}`}</h2>
       <div className="relative flex w-full flex-grow items-center justify-center">
         <Table>
-          {room && (
-            <>
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-xl text-white">
-                  {
-                    ["PREGAME", "PREFLOP", "FLOP", "TURN", "RIVER", "POSTGAME"][
-                      room.phase
-                    ]
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xl text-white">
+              {room &&
+                ["PREGAME", "PREFLOP", "FLOP", "TURN", "RIVER", "POSTGAME"][
+                  room.phase
+                ]}
+            </span>
+            <span className="text-3xl text-white">{room?.pot}</span>
+          </div>
+          <div className="absolute h-full w-full p-4">
+            <div ref={tableRef} className="relative h-full w-full">
+              {room &&
+                room.players.map((p, i, a) => {
+                  if (tableRef.current === null) {
+                    return;
                   }
-                </span>
-                <span className="text-3xl text-white">{room.pot}</span>
-              </div>
-              <div className="absolute h-full w-full p-4">
-                <div ref={tableRef} className="relative h-full w-full">
-                  {room.players.map((p, i, a) => {
-                    if (tableRef.current === null) {
-                      return;
-                    }
-                    const { clientWidth, clientHeight } = tableRef.current!;
+                  const { clientWidth, clientHeight } = tableRef.current!;
 
-                    const [x, y] = getPointOnPill(
-                      clientWidth,
-                      clientHeight,
-                      ((i - j! + a.length) % a.length) / a.length,
-                    );
-                    return (
-                      <div
-                        key={i}
-                        className={`absolute flex -translate-x-[50%] -translate-y-[50%] flex-col items-center rounded-lg bg-gray-800/75 px-6 py-2 text-white ${
-                          i === room.turn ? "border-4 border-white" : ""
-                        }`}
-                        style={{
-                          left: x,
-                          top: y,
-                        }}
-                      >
-                        <div className="flex justify-between gap-2">
-                          <span className="text-lg">{p.name}</span>
-                        </div>
-                        <span className="text-2xl font-bold">{p.stack}</span>
-                        <div className="absolute -bottom-8 flex w-full gap-2 [&>*]:flex [&>*]:h-6 [&>*]:w-6 [&>*]:items-center [&>*]:justify-center [&>*]:rounded-full">
-                          {i === room.dealer && (
-                            <div className="bg-white text-gray-800">D</div>
-                          )}
-                          {i === (room.dealer + 1) % room.players.length && (
-                            <div className="bg-blue-600 text-gray-800">SB</div>
-                          )}
-                          {i === (room.dealer + 2) % room.players.length && (
-                            <div className="bg-yellow-600 text-gray-800">
-                              BB
-                            </div>
-                          )}
-                        </div>
+                  const [x, y] = getPointOnPill(
+                    clientWidth,
+                    clientHeight,
+                    ((i - j! + a.length) % a.length) / a.length,
+                  );
+                  return (
+                    <div
+                      key={i}
+                      className={`absolute flex -translate-x-[50%] -translate-y-[50%] flex-col items-center rounded-lg bg-gray-800/75 px-6 py-2 text-white ${
+                        i === room.turn ? "border-4 border-white" : ""
+                      }`}
+                      style={{
+                        left: x,
+                        top: y,
+                      }}
+                    >
+                      <div className="flex justify-between gap-2">
+                        <span className="text-lg">{p.name}</span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
+                      <span className="text-2xl font-bold">{p.stack}</span>
+                      <div className="absolute -bottom-8 flex w-full gap-2 [&>*]:flex [&>*]:h-6 [&>*]:w-6 [&>*]:items-center [&>*]:justify-center [&>*]:rounded-full">
+                        {i === room.dealer && (
+                          <div className="bg-white text-gray-800">D</div>
+                        )}
+                        {i === (room.dealer + 1) % room.players.length && (
+                          <div className="bg-blue-600 text-gray-800">SB</div>
+                        )}
+                        {i === (room.dealer + 2) % room.players.length && (
+                          <div className="bg-yellow-600 text-gray-800">BB</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
         </Table>
         {isAdmin && (
           <div className="absolute bottom-4 right-4 flex flex-col gap-2">

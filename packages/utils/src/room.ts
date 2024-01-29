@@ -42,6 +42,7 @@ export class Room {
     this.advanceTurn();
     this.callRaise(this.smallBlind);
     this.callRaise(this.bigBlind - this.smallBlind);
+    this.lastRaiser = this.turn;
   }
 
   resetGame() {
@@ -84,7 +85,6 @@ export class Room {
   }
 
   callRaise(amount = 0) {
-    // TODO: sidepots
     if (this.phase === 0 || this.phase === 5) return;
     const player = this.players[this.turn]!;
     if (player.didFold) return;
@@ -108,7 +108,8 @@ export class Room {
     this.advanceTurn();
 
     if (this.players.reduce((s, p) => s + +!p.didFold, 0) === 1) {
-      this.players[this.turn]!.stack += this.pot;
+      const lastPlayerIndex = this.players.findIndex((p) => !p.didFold);
+      this.players[lastPlayerIndex]!.stack += this.pot;
       this.resetGame();
     }
   }
