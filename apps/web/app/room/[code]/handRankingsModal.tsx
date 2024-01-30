@@ -16,10 +16,10 @@ export default function HandRankingsModal({
       title="HAND RANKINGS"
     >
       <div className="flex flex-col">
-        <ol className="flex flex-col gap-2 [&>*]:flex [&>*]:flex-col [&>*]:items-center">
+        <ol className="flex flex-col gap-2">
           <li>
             <h3>STRAIGHT FLUSH</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>KS</Card>
               <Card>QS</Card>
               <Card>JS</Card>
@@ -29,27 +29,27 @@ export default function HandRankingsModal({
           </li>
           <li>
             <h3>FOUR OF A KIND</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>JC</Card>
               <Card>JD</Card>
               <Card>JH</Card>
               <Card>JS</Card>
-              <Card faceDown>AS</Card>
+              <Card faceDown />
             </div>
           </li>
           <li>
             <h3>FULL HOUSE</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>QC</Card>
               <Card>QD</Card>
               <Card>QH</Card>
               <Card>5S</Card>
-              <Card>5S</Card>
+              <Card>5H</Card>
             </div>
           </li>
           <li>
             <h3>FLUSH</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>5D</Card>
               <Card>9D</Card>
               <Card>AD</Card>
@@ -59,7 +59,7 @@ export default function HandRankingsModal({
           </li>
           <li>
             <h3>STRAIGHT</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>6D</Card>
               <Card>7S</Card>
               <Card>8C</Card>
@@ -69,42 +69,42 @@ export default function HandRankingsModal({
           </li>
           <li>
             <h3>THREE OF A KIND</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>7D</Card>
               <Card>7S</Card>
               <Card>7C</Card>
-              <Card faceDown>AS</Card>
-              <Card faceDown>9H</Card>
+              <Card faceDown />
+              <Card faceDown />
             </div>
           </li>
           <li>
             <h3>TWO PAIR</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>2D</Card>
               <Card>2S</Card>
               <Card>9C</Card>
               <Card>9S</Card>
-              <Card faceDown>JH</Card>
+              <Card faceDown />
             </div>
           </li>
           <li>
             <h3>PAIR</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>8D</Card>
               <Card>8S</Card>
-              <Card faceDown>9C</Card>
-              <Card faceDown>9S</Card>
-              <Card faceDown>9H</Card>
+              <Card faceDown />
+              <Card faceDown />
+              <Card faceDown />
             </div>
           </li>
           <li>
             <h3>HIGH CARD</h3>
-            <div className="flex w-full gap-2 [&>*]:h-20">
+            <div className="flex w-full gap-2">
               <Card>AH</Card>
-              <Card faceDown>2S</Card>
-              <Card faceDown>9C</Card>
-              <Card faceDown>9S</Card>
-              <Card faceDown>9H</Card>
+              <Card faceDown />
+              <Card faceDown />
+              <Card faceDown />
+              <Card faceDown />
             </div>
           </li>
         </ol>

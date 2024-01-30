@@ -13,6 +13,7 @@ import BettingModal from "./bettingModal";
 import SelectWinnersModal from "./selectWinnersModal";
 import Player from "./player";
 import HandRankingsModal from "./handRankingsModal";
+import Card from "@repo/ui/card";
 
 export default function Page({ params }: { params: { code: string } }) {
   const [room, setRoom] = useState<Room | null>(null);
@@ -73,13 +74,45 @@ export default function Page({ params }: { params: { code: string } }) {
             return cs;
           }, [] as React.ReactNode[])}
         >
-          <div className="flex flex-col items-center gap-2">
+          <div className="relative top-8 flex w-full flex-col items-center gap-1 px-6 md:top-0">
             <span className="text-xl">
               {room &&
                 ["PREGAME", "PREFLOP", "FLOP", "TURN", "RIVER", "POSTGAME"][
                   room.phase
                 ]}
             </span>
+            <div className="flex w-full justify-center gap-2 md:w-auto">
+              {room &&
+                [...Array(5)].map((_, i) => {
+                  let visible = false;
+                  if (
+                    (i < 3 && room.phase > 1) ||
+                    (i === 3 && room.phase > 2) ||
+                    (i === 4 && room.phase > 3)
+                  ) {
+                    visible = true;
+                  }
+                  const transitionDelay =
+                    room.phase < 3 ? (i * 150).toString() + "ms" : "0ms";
+                  return (
+                    <div
+                      // HACK: !important
+                      className={`w-full rounded-md border-2 transition-[border-color] md:!w-auto ${
+                        visible ? "border-transparent" : ""
+                      }`}
+                      style={{ transitionDelay }}
+                    >
+                      <Card
+                        faceDown
+                        className={`h-auto w-full transition-opacity duration-150 md:h-20 md:!w-auto ${
+                          visible ? "" : "opacity-0"
+                        }`}
+                        style={{ transitionDelay }}
+                      />
+                    </div>
+                  );
+                })}
+            </div>
             <span className="text-3xl">{room?.pot.toLocaleString()}</span>
           </div>
         </Table>

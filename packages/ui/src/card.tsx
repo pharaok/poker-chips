@@ -7,14 +7,17 @@ import Spade from "./spade";
 export default function Card({
   faceDown = false,
   className,
+  style,
   children,
 }: {
   faceDown?: boolean;
   className?: string;
-  children: string;
+  style?: React.CSSProperties;
+  children?: string;
 }) {
-  const rank = children.slice(0, children.length - 1)!;
-  const suit = children.slice(children.length - 1);
+  console.log(style);
+  const rank = children?.slice(0, children.length - 1);
+  const suit = children?.slice(children.length - 1);
   let suitComponent;
   switch (suit) {
     case "C":
@@ -33,10 +36,11 @@ export default function Card({
   return (
     <div
       className={twMerge(
-        `relative flex aspect-[3/5] items-center justify-center rounded-lg bg-white ${suit === "C" || suit === "S" ? "text-black" : "text-red-600"
+        `relative flex h-20 aspect-[3/5] items-center justify-center rounded-md bg-white ${suit === "C" || suit === "S" ? "text-black" : "text-red-600"
         }`,
         className,
       )}
+      style={style}
     >
       {faceDown ? (
         <div className="absolute inset-[2px] p-[2px] bg-red-600 rounded-md">
