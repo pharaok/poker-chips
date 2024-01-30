@@ -34,8 +34,8 @@ export default function Player({
   return (
     <div className="text-xl">
       <div
-        className={`absolute w-full -translate-y-[100%] text-center before:absolute before:inset-x-0 before:-bottom-16 before:-z-10 before:h-16 before:rounded-t-lg before:transition-[box-shadow] ${
-          p.lastAction || p.didFold
+        className={`pointer-events-none absolute w-full -translate-y-[100%] text-center before:absolute before:inset-x-0 before:-bottom-16 before:-z-10 before:h-16 before:rounded-t-lg before:transition-[box-shadow] ${
+          p.lastAction
             ? "before:shadow-[0_-32px_0_0_var(--tw-shadow-color)]"
             : "before:shadow-[0_0_0_0_var(--tw-shadow-color)]"
         } ${popupClassName}`}
@@ -43,7 +43,7 @@ export default function Player({
         <div className="overflow-hidden">
           <div
             className={`rounded-t-lg transition-[transform] ${
-              p.lastAction || p.didFold ? "translate-y-0" : "translate-y-[100%]"
+              p.lastAction ? "translate-y-0" : "translate-y-[100%]"
             }`}
           >
             {p.lastAction
@@ -51,16 +51,14 @@ export default function Player({
                 (p.lastAction.kind === "bet" || p.lastAction.kind === "raise"
                   ? " " + formatNumberKMB(p.lastAction.amount)
                   : "")
-              : p.didFold
-                ? "FOLDED"
-                : ""}
+              : ""}
           </div>
         </div>
       </div>
       <div
         className={`flex flex-col items-center rounded-lg bg-gray-800/75 px-8 py-2 ${
           playerIndex === room.turn ? "border-4 border-white" : ""
-        } ${p.didFold ? "text-gray-400" : ""}`}
+        } ${p.isFolded ? "text-white/25" : ""}`}
       >
         <div className="flex justify-between gap-2">
           <span>{p.name}</span>

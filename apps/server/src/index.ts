@@ -58,16 +58,35 @@ io.on("connection", (socket) => {
       stack: 10000,
       roundBet: 0,
       potContribution: 0,
-      didFold: false,
+      isFolded: false,
+      isPlaying: true,
       lastAction: null,
     };
-    if (!rooms[rId]!.players.some((p) => p.id == socket.id)) {
-      rooms[rId]!.players.push(player);
+    if (!rooms[rId]!.players.some((p) => p.id === socket.id)) {
+      rooms[rId]!.joinTable(player);
       playerRoom[socket.id] = rId;
     }
     socket.join(rId);
     callback(rooms[rId]!);
     io.to(rId).emit("updateRoom", rooms[rId]!);
+  });
+  socket.on("sitDownAt", (at) => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    const playerIndex = room.players.findIndex((p) => p.id === socket.id);
+
+    room.sitDownAt(playerIndex, at);
+    io.to(rId).emit("updateRoom", room);
+  });
+  socket.on("getUp", () => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    const playerIndex = room.players.findIndex((p) => p.id === socket.id);
+
+    room.getUp(playerIndex);
+    io.to(rId).emit("updateRoom", room);
   });
 
   socket.on("startGame", () => {

@@ -4,7 +4,7 @@ import Button from "@repo/ui/button";
 import Table from "@repo/ui/table";
 import Tooltip from "@repo/ui/tooltip";
 import { Room } from "@repo/utils/room";
-import { Menu, StepForward } from "lucide-react";
+import { ArrowUpFromLine, Menu, Plus, StepForward } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TooltipTrigger } from "react-aria-components";
 import { socket } from "../../socket";
@@ -52,13 +52,24 @@ export default function Page({ params }: { params: { code: string } }) {
       <h2 className="fixed left-4 top-4 text-2xl text-white">{`#${params.code}`}</h2>
       <div className="relative flex w-full flex-grow items-center justify-center">
         <Table
-          around={room?.players?.map((_, i, a) => (
-            <Player
-              key={i}
-              room={room}
-              playerIndex={(i + playerIndex!) % a.length}
-            />
-          ))}
+          around={room?.players.reduce((cs, _, i, a) => {
+            i = (i + playerIndex!) % a.length;
+            const p = a[i]!;
+            if (!p.isPlaying) return cs;
+
+            cs.push(<Player key={i} room={room} playerIndex={i} />);
+            if (!room.players[playerIndex!]!.isPlaying) {
+              cs.push(
+                <Button
+                  className="flex h-12 w-12 items-center justify-center p-3 text-white"
+                  onPress={() => socket.emit("sitDownAt", i + 1)}
+                >
+                  <Plus className="h-full w-full" />
+                </Button>,
+              );
+            }
+            return cs;
+          }, [] as React.ReactNode[])}
         >
           <div className="flex flex-col items-center gap-2">
             <span className="text-xl">
@@ -70,16 +81,25 @@ export default function Page({ params }: { params: { code: string } }) {
             <span className="text-3xl">{room?.pot.toLocaleString()}</span>
           </div>
         </Table>
+        <div className="absolute right-4 top-4 text-white">
+          <Button
+            className="flex h-12 w-12 p-3"
+            onPress={() => socket.emit("getUp")}
+          >
+            <ArrowUpFromLine className="h-full w-full" />
+          </Button>
+        </div>
+
         {isAdmin && (
           <div className="absolute bottom-4 right-4 flex flex-col gap-2 text-white">
             <Button
-              className="flex h-12 w-12 rounded-full bg-gray-800 p-3"
+              className="flex h-12 w-12 p-3"
               onPress={() => setIsAdminModalOpen(true)}
             >
               <Menu className="h-full w-full" />
             </Button>
             <Button
-              className="flex h-12 w-12 rounded-full bg-gray-800 p-3"
+              className="flex h-12 w-12 p-3"
               onPress={() => socket.emit("startGame")}
             >
               <StepForward className="h-full w-full fill-current" />

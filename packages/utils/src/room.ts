@@ -14,7 +14,8 @@ export interface Player {
   stack: number;
   roundBet: number;
   potContribution: number;
-  didFold: boolean;
+  isFolded: boolean;
+  isPlaying: boolean;
   lastAction: Action | null;
 }
 
@@ -43,17 +44,28 @@ export class Room {
     this.players = [];
   }
 
-  joinTable(player: Player, at?: number) {
-    at ??= this.players.length;
-    this.players.splice(at, 0, player);
+  joinTable(player: Player) {
+    this.players.push(player);
+    this.sitDownAt(this.players.length - 1, this.players.length - 1);
   }
-
   leaveTable(id: string) {
     this.players = this.players.filter((p) => p.id !== id);
   }
 
+  sitDownAt(playerIndex: number, at: number) {
+    const player = this.players[playerIndex]!;
+    player.isPlaying = true;
+    if (this.phase !== 0) player.isFolded = true;
+    if (player.stack === 0) player.stack = 10000; // re buy in
+
+    this.players.splice(at, 0, this.players.splice(playerIndex, 1)[0]!);
+  }
+  getUp(playerIndex: number) {
+    this.players[playerIndex]!.isPlaying = false;
+  }
+
   startGame() {
-    if (this.players.length < 2) return;
+    if (this.players.filter((p) => p.isPlaying).length < 2) return;
     if (this.phase !== 0) return;
     this.phase += 1;
 
@@ -77,8 +89,9 @@ export class Room {
     this.turn = this.dealer;
     this.lastRaiser = this.turn;
 
-    this.players.forEach((p) => {
-      p.didFold = false;
+    this.players.forEach((p, i) => {
+      p.isFolded = false;
+      if (p.stack === 0) this.getUp(i);
       p.roundBet = 0;
       p.potContribution = 0;
       p.lastAction = null;
@@ -108,14 +121,16 @@ export class Room {
       }
     } while (
       this.phase < 5 &&
-      (this.players[this.turn]!.didFold || this.players[this.turn]!.stack === 0)
+      (!this.players[this.turn]!.isPlaying ||
+        this.players[this.turn]!.isFolded ||
+        this.players[this.turn]!.stack === 0)
     );
   }
 
   callRaise(amount = 0) {
     if (this.phase === 0 || this.phase === 5) return;
     const player = this.players[this.turn]!;
-    if (player.didFold) return;
+    if (player.isFolded) return;
 
     const toCall = this.roundBet - player.roundBet;
     const total = Math.min(player.stack, toCall + amount);
@@ -149,11 +164,11 @@ export class Room {
 
   fold() {
     if (this.phase === 0 || this.phase === 5) return;
-    this.players[this.turn]!.didFold = true;
+    this.players[this.turn]!.isFolded = true;
     this.players[this.turn]!.lastAction = { kind: "fold" };
 
-    if (this.players.reduce((s, p) => s + +!p.didFold, 0) === 1) {
-      const lastPlayerIndex = this.players.findIndex((p) => !p.didFold);
+    if (this.players.reduce((s, p) => s + +!p.isFolded, 0) === 1) {
+      const lastPlayerIndex = this.players.findIndex((p) => !p.isFolded);
       this.players[lastPlayerIndex]!.stack += this.pot;
       this.resetGame();
     }
@@ -181,7 +196,7 @@ export class Room {
     // WARN: O(n^2)
     return playersEnum.reduce(
       (pots, [pi, p]) => {
-        if (p.didFold) return pots;
+        if (p.isFolded) return pots;
         const cpp =
           p.potContribution - pots.reduce((s, p) => s + p.contribPerPlayer, 0);
         pots.forEach((pot) => {

@@ -5,12 +5,14 @@ export interface ClientToServerEvents {
   createRoom: (callback: (id: string) => void) => void;
   joinRoom: (name: string, id: string, callback: (room: Room) => void) => void;
   leaveRoom: () => void;
+  sitDownAt: (at: number) => void;
+  getUp: () => void;
   startGame: () => void;
   checkCall: () => void;
   raise: (amount: number) => void;
   fold: () => void;
-  selectWinners: (ps: number[]) => void;
-  setStack: (p: number, stack: number) => void;
+  selectWinners: (playerIndices: number[]) => void;
+  setStack: (playerIndex: number, stack: number) => void;
 }
 export interface ServerToClientEvents {
   updateRoom: (room: Room) => void;
