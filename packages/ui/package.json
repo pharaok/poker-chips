@@ -17,7 +17,8 @@
     "./modal": "./src/modal.tsx",
     "./input": "./src/input.tsx",
     "./slider": "./src/slider.tsx",
-    "./tooltip": "./src/tooltip.tsx"
+    "./tooltip": "./src/tooltip.tsx",
+    "./card": "./src/card.tsx"
   },
   "scripts": {
     "build": "tailwindcss -i ./src/styles.css -o dist/index.css",

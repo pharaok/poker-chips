@@ -104,7 +104,12 @@ export class Room {
       this.turn %= this.players.length;
 
       if (this.turn === this.lastRaiser) {
-        if (this.players.reduce((s, p) => s + +(p.stack > 0), 0) === 1) {
+        if (
+          this.players.reduce(
+            (s, p) => s + +(p.isPlaying && p.stack > 0 && !p.isFolded),
+            0,
+          ) === 1
+        ) {
           this.phase = 5;
           return;
         }

@@ -4,7 +4,7 @@ import Button from "@repo/ui/button";
 import Table from "@repo/ui/table";
 import Tooltip from "@repo/ui/tooltip";
 import { Room } from "@repo/utils/room";
-import { ArrowUpFromLine, Menu, Plus, StepForward } from "lucide-react";
+import { ArrowUpFromLine, Info, Menu, Plus, StepForward } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TooltipTrigger } from "react-aria-components";
 import { socket } from "../../socket";
@@ -12,6 +12,7 @@ import AdminModal from "./adminModal";
 import BettingModal from "./bettingModal";
 import SelectWinnersModal from "./selectWinnersModal";
 import Player from "./player";
+import HandRankingsModal from "./handRankingsModal";
 
 export default function Page({ params }: { params: { code: string } }) {
   const [room, setRoom] = useState<Room | null>(null);
@@ -23,6 +24,7 @@ export default function Page({ params }: { params: { code: string } }) {
     (room && room!.roundBet - room!.players[playerIndex!]!.roundBet) || 0;
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isHandsModalOpen, setIsHandsModalOpen] = useState(false);
 
   const isDisabled =
     room?.phase === 0 || room?.phase === 5 || room?.turn !== playerIndex;
@@ -81,12 +83,18 @@ export default function Page({ params }: { params: { code: string } }) {
             <span className="text-3xl">{room?.pot.toLocaleString()}</span>
           </div>
         </Table>
-        <div className="absolute right-4 top-4 text-white">
+        <div className="absolute right-4 top-4 flex flex-col gap-2 text-white">
           <Button
             className="flex h-12 w-12 p-3"
             onPress={() => socket.emit("getUp")}
           >
             <ArrowUpFromLine className="h-full w-full" />
+          </Button>
+          <Button
+            className="flex h-12 w-12 p-3"
+            onPress={() => setIsHandsModalOpen(true)}
+          >
+            <Info className="h-full w-full" />
           </Button>
         </div>
 
@@ -151,6 +159,10 @@ export default function Page({ params }: { params: { code: string } }) {
           setOpen={setIsAdminModalOpen}
         ></AdminModal>
       )}
+      <HandRankingsModal
+        isOpen={isHandsModalOpen}
+        setOpen={setIsHandsModalOpen}
+      ></HandRankingsModal>
     </main>
   );
 }

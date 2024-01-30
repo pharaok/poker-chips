@@ -19,9 +19,9 @@ export default function Modal({
     >
       <RAModal
         {...props}
-        className="relative max-h-full w-80 max-w-full rounded-2xl bg-gray-900 p-4 text-white"
+        className="relative rounded-2xl bg-gray-900 p-4 text-white"
       >
-        <Dialog className="flex flex-col items-center justify-center gap-2 outline-none">
+        <Dialog className="flex max-h-96 w-80 flex-col items-center justify-center gap-2 outline-none">
           {({ close }) => (
             <>
               {props.isDismissable && (
@@ -35,7 +35,11 @@ export default function Modal({
               <Heading slot="title" className=" text-2xl uppercase">
                 {title}
               </Heading>
-              {children as React.ReactNode}
+              <div className="-mr-6 max-h-full overflow-scroll">
+                <div className="flex flex-col items-center justify-center gap-2 pr-6">
+                  {children as React.ReactNode}
+                </div>
+              </div>
             </>
           )}
         </Dialog>
