@@ -96,6 +96,7 @@ export default function Page({ params }: { params: { code: string } }) {
                     room.phase < 3 ? (i * 150).toString() + "ms" : "0ms";
                   return (
                     <div
+                      key={i}
                       // HACK: !important
                       className={`w-full rounded-md border-2 transition-[border-color] md:!w-auto ${
                         visible ? "border-transparent" : ""

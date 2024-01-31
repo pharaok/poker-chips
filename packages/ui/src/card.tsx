@@ -15,7 +15,6 @@ export default function Card({
   style?: React.CSSProperties;
   children?: string;
 }) {
-  console.log(style);
   const rank = children?.slice(0, children.length - 1);
   const suit = children?.slice(children.length - 1);
   let suitComponent;

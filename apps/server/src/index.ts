@@ -12,10 +12,11 @@ const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
   server,
   {
+    addTrailingSlash: false,
     connectionStateRecovery: {
       maxDisconnectionDuration: 5 * 60 * 1000,
     },
-    cors: { origin: "*" },
+    cors: { origin: "http://localhost:3000" },
   },
 );
 
