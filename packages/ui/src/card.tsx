@@ -42,11 +42,11 @@ export default function Card({
       style={style}
     >
       {faceDown ? (
-        <div className="absolute inset-[2px] p-[2px] bg-red-600 rounded-md">
+        <div className="absolute inset-[2px] p-[2px] bg-red-900 rounded-sm">
           <svg
             viewBox="0 0 30 50"
             preserveAspectRatio="none"
-            className="h-full w-full fill-white"
+            className="h-full w-full fill-red-600"
           >
             <path
 

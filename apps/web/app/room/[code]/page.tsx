@@ -1,21 +1,31 @@
 "use client";
 
 import Button from "@repo/ui/button";
+import Card from "@repo/ui/card";
 import Table from "@repo/ui/table";
 import Tooltip from "@repo/ui/tooltip";
 import { Room } from "@repo/utils/room";
-import { ArrowUpFromLine, Info, Menu, Plus, StepForward } from "lucide-react";
+import {
+  ArrowUpFromLine,
+  Info,
+  LogOut,
+  Menu,
+  Plus,
+  StepForward,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TooltipTrigger } from "react-aria-components";
 import { socket } from "../../socket";
 import AdminModal from "./adminModal";
 import BettingModal from "./bettingModal";
-import SelectWinnersModal from "./selectWinnersModal";
-import Player from "./player";
 import HandRankingsModal from "./handRankingsModal";
-import Card from "@repo/ui/card";
+import Player from "./player";
+import SelectWinnersModal from "./selectWinnersModal";
 
 export default function Page({ params }: { params: { code: string } }) {
+  const router = useRouter();
+
   const [room, setRoom] = useState<Room | null>(null);
   const playerIndex = room?.players.findIndex((p) => p.id === socket.id);
   const player =
@@ -118,9 +128,16 @@ export default function Page({ params }: { params: { code: string } }) {
           <Button
             className="flex h-12 w-12 p-3"
             isDisabled={(room && !player?.isFolded && room?.phase > 0) ?? false}
-            onPress={() => socket.emit("getUp")}
+            onPress={() => {
+              if (player?.isPlaying) socket.emit("getUp");
+              else router.push("/");
+            }}
           >
-            <ArrowUpFromLine className="h-full w-full" />
+            {player?.isPlaying ? (
+              <ArrowUpFromLine className="h-full w-full" />
+            ) : (
+              <LogOut className="h-full w-full" />
+            )}
           </Button>
           <Button
             className="flex h-12 w-12 p-3"
@@ -151,7 +168,7 @@ export default function Page({ params }: { params: { code: string } }) {
         <TooltipTrigger isOpen={callAmount > 0}>
           <Tooltip>{callAmount.toLocaleString()}</Tooltip>
           <Button
-            className="w-28 bg-green-400 hover:bg-green-500 disabled:bg-green-800 disabled:text-gray-800"
+            className="w-28 bg-green-400 hover:!bg-green-500 disabled:bg-green-800 disabled:text-gray-800"
             isDisabled={isDisabled}
             onPress={() => socket.emit("checkCall")}
           >
@@ -159,7 +176,7 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
         </TooltipTrigger>
         <Button
-          className="w-28 bg-yellow-400 hover:bg-yellow-500 disabled:bg-yellow-800 disabled:text-gray-800"
+          className="w-28 bg-yellow-400 hover:!bg-yellow-500 disabled:bg-yellow-800 disabled:text-gray-800"
           isDisabled={isDisabled}
           onPress={() => {
             setIsBetModalOpen(true);
@@ -168,7 +185,7 @@ export default function Page({ params }: { params: { code: string } }) {
           {callAmount > 0 ? "RAISE" : "BET"}
         </Button>
         <Button
-          className="w-28 bg-red-400 hover:bg-red-500 disabled:bg-red-800 disabled:text-gray-800"
+          className="w-28 bg-red-400 hover:!bg-red-500 disabled:bg-red-800 disabled:text-gray-800"
           isDisabled={isDisabled}
           onPress={() => socket.emit("fold")}
         >
