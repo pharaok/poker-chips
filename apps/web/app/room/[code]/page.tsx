@@ -17,32 +17,29 @@ import Card from "@repo/ui/card";
 
 export default function Page({ params }: { params: { code: string } }) {
   const [room, setRoom] = useState<Room | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const playerIndex = room?.players.findIndex((p) => p.id === socket.id);
+  const player =
+    playerIndex !== undefined ? room!.players[playerIndex] : undefined;
+  const isAdmin = player?.id === room?.admin?.id;
 
   const [isBetModalOpen, setIsBetModalOpen] = useState(false);
-  const callAmount =
-    (room && room!.roundBet - room!.players[playerIndex!]!.roundBet) || 0;
+  const callAmount = room ? room.roundBet - player!.roundBet : 0;
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isHandsModalOpen, setIsHandsModalOpen] = useState(false);
 
   const isDisabled =
-    room?.phase === 0 || room?.phase === 5 || room?.turn !== playerIndex;
+    room?.phase === 0 || room?.phase === 5 || room?.turn?.id !== player?.id;
 
   useEffect(() => {
     socket.emit(
       "joinRoom",
       localStorage.getItem("name") || "Player",
       params.code,
-      (room) => {
-        setRoom(room);
-        setIsAdmin(room.players[0]!.id === socket.id);
-      },
+      (room) => setRoom(room),
     );
     socket.on("updateRoom", (room) => {
       setRoom(room);
-      setIsAdmin(room.players[0]!.id === socket.id);
     });
     return () => {
       socket.off("updateRoom");
@@ -120,6 +117,7 @@ export default function Page({ params }: { params: { code: string } }) {
         <div className="absolute right-4 top-4 flex flex-col gap-2 text-white">
           <Button
             className="flex h-12 w-12 p-3"
+            isDisabled={(room && !player?.isFolded && room?.phase > 0) ?? false}
             onPress={() => socket.emit("getUp")}
           >
             <ArrowUpFromLine className="h-full w-full" />
@@ -153,7 +151,7 @@ export default function Page({ params }: { params: { code: string } }) {
         <TooltipTrigger isOpen={callAmount > 0}>
           <Tooltip>{callAmount.toLocaleString()}</Tooltip>
           <Button
-            className="w-28 bg-green-400 hover:bg-green-500 disabled:bg-green-800"
+            className="w-28 bg-green-400 hover:bg-green-500 disabled:bg-green-800 disabled:text-gray-800"
             isDisabled={isDisabled}
             onPress={() => socket.emit("checkCall")}
           >
@@ -161,7 +159,7 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
         </TooltipTrigger>
         <Button
-          className="w-28 bg-yellow-400 hover:bg-yellow-500 disabled:bg-yellow-800"
+          className="w-28 bg-yellow-400 hover:bg-yellow-500 disabled:bg-yellow-800 disabled:text-gray-800"
           isDisabled={isDisabled}
           onPress={() => {
             setIsBetModalOpen(true);
@@ -170,7 +168,7 @@ export default function Page({ params }: { params: { code: string } }) {
           {callAmount > 0 ? "RAISE" : "BET"}
         </Button>
         <Button
-          className="w-28 bg-red-400 hover:bg-red-500 disabled:bg-red-800"
+          className="w-28 bg-red-400 hover:bg-red-500 disabled:bg-red-800 disabled:text-gray-800"
           isDisabled={isDisabled}
           onPress={() => socket.emit("fold")}
         >

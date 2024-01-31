@@ -27,6 +27,7 @@ const leaveRoom = (socket: Socket) => {
   const rId = playerRoom[socket.id];
   if (rId && rooms[rId]) {
     socket.leave(rId);
+    rooms[rId]?.getUp(socket.id);
     rooms[rId]?.leaveTable(socket.id);
     io.to(rId).emit("updateRoom", rooms[rId]!);
     if (rooms[rId]!.players.length === 0) {
@@ -44,9 +45,8 @@ io.on("connection", (socket) => {
     callback(id);
   });
   socket.on("joinRoom", (name, rId, callback) => {
-    if (!rooms[rId]) {
-      rooms[rId] = new Room();
-    }
+    if (!rooms[rId]) rooms[rId] = new Room();
+    const room = rooms[rId]!;
     // leave all other rooms
     socket.rooms.forEach((room) => {
       if (room !== socket.id) {
@@ -56,37 +56,35 @@ io.on("connection", (socket) => {
     const player: Player = {
       id: socket.id,
       name,
-      stack: 10000,
+      stack: room.buyIn,
       roundBet: 0,
       potContribution: 0,
       isFolded: false,
       isPlaying: true,
       lastAction: null,
     };
-    if (!rooms[rId]!.players.some((p) => p.id === socket.id)) {
-      rooms[rId]!.joinTable(player);
+    if (!room.players.some((p) => p.id === socket.id)) {
+      room.joinTable(player);
       playerRoom[socket.id] = rId;
     }
     socket.join(rId);
-    callback(rooms[rId]!);
-    io.to(rId).emit("updateRoom", rooms[rId]!);
+    callback(room);
+    io.to(rId).emit("updateRoom", room);
   });
   socket.on("sitDownAt", (at) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    const playerIndex = room.players.findIndex((p) => p.id === socket.id);
 
-    room.sitDownAt(playerIndex, at);
+    room.sitDownAt(socket.id, at);
     io.to(rId).emit("updateRoom", room);
   });
   socket.on("getUp", () => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    const playerIndex = room.players.findIndex((p) => p.id === socket.id);
 
-    room.getUp(playerIndex);
+    room.getUp(socket.id);
     io.to(rId).emit("updateRoom", room);
   });
 
@@ -104,7 +102,7 @@ io.on("connection", (socket) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    if (socket.id !== room.players[room.turn]?.id) return;
+    if (socket.id !== room.turn?.id) return;
 
     room.callRaise();
     room.advanceTurn();
@@ -115,7 +113,7 @@ io.on("connection", (socket) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    if (socket.id !== room.players[room.turn]?.id) return;
+    if (socket.id !== room.turn?.id) return;
 
     room.callRaise(amount);
     room.advanceTurn();
@@ -126,7 +124,7 @@ io.on("connection", (socket) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    if (socket.id !== room.players[room.turn]?.id) return;
+    if (socket.id !== room.turn?.id) return;
 
     room.fold();
     room.advanceTurn();
@@ -137,7 +135,7 @@ io.on("connection", (socket) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    if (socket.id !== room.players[0]?.id) return;
+    if (socket.id !== room.admin?.id) return;
 
     room.chooseWinner(ps);
     io.to(rId).emit("updateRoom", room);
@@ -146,7 +144,7 @@ io.on("connection", (socket) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
-    if (socket.id !== room.players[0]?.id) return;
+    if (socket.id !== room.admin?.id) return;
 
     room.players[i]!.stack = stack;
     io.to(rId).emit("updateRoom", room);

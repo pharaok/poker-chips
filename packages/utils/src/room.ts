@@ -26,10 +26,11 @@ export class Room {
   phase: number;
   pot: number;
   roundBet: number;
-  turn: number; // Player index
-  dealer: number; // Player index
-  lastRaiser: number; // Player index
+  turn: Player | null; // Player index
+  dealer: Player | null; // Player index
+  lastRaiser: Player | null; // Player index
   players: Player[];
+  admin: Player | null;
 
   constructor() {
     this.buyIn = 10000;
@@ -38,30 +39,58 @@ export class Room {
     this.phase = 0;
     this.pot = 0;
     this.roundBet = 0;
-    this.turn = 0;
-    this.dealer = 0;
-    this.lastRaiser = 0;
+    this.turn = null;
+    this.dealer = null;
+    this.lastRaiser = null;
     this.players = [];
+    this.admin = null;
   }
 
   joinTable(player: Player) {
     this.players.push(player);
-    this.sitDownAt(this.players.length - 1, this.players.length - 1);
+    if (this.players.length === 1) {
+      this.admin = player;
+      this.dealer = player;
+      this.turn = player;
+    }
+
+    this.sitDownAt(player.id, this.players.length - 1);
   }
   leaveTable(id: string) {
-    this.players = this.players.filter((p) => p.id !== id);
+    const playerIndex = this.players.findIndex((p) => p.id === id);
+    const player = this.players[playerIndex]!;
+    const isAdmin = player.id === this.admin!.id;
+
+    this.players.splice(playerIndex, 1);
+    if (isAdmin) this.admin = this.players[0] ?? null;
   }
 
-  sitDownAt(playerIndex: number, at: number) {
+  sitDownAt(id: string, at: number) {
+    const playerIndex = this.players.findIndex((p) => p.id === id);
     const player = this.players[playerIndex]!;
     player.isPlaying = true;
     if (this.phase !== 0) player.isFolded = true;
-    if (player.stack === 0) player.stack = 10000; // re buy in
+    if (player.stack === 0) player.stack = this.buyIn; // re buy in
 
     this.players.splice(at, 0, this.players.splice(playerIndex, 1)[0]!);
   }
-  getUp(playerIndex: number) {
-    this.players[playerIndex]!.isPlaying = false;
+  getUp(id: string) {
+    const playerIndex = this.players.findIndex((p) => p.id === id);
+    const player = this.players[playerIndex]!;
+    if (!player.isFolded && this.phase > 0) return;
+    player.isPlaying = false;
+    if (player.id === this.dealer!.id)
+      this.dealer = this.nextPlayer(this.dealer!);
+  }
+
+  nextPlayer(player: Player) {
+    const i = this.players.findIndex((p) => p.id === player.id);
+    let j = i;
+    do {
+      j += 1;
+      j %= this.players.length;
+    } while (j !== i && !this.players[j]!.isPlaying);
+    return this.players[j]!;
   }
 
   startGame() {
@@ -71,10 +100,11 @@ export class Room {
 
     this.advanceTurn();
     this.callRaise(this.smallBlind);
-    this.players[this.turn]!.lastAction = { kind: "small blind" };
+    this.turn!.lastAction = { kind: "small blind" };
+    this.turn!.lastAction = { kind: "small blind" };
     this.advanceTurn();
     this.callRaise(this.bigBlind - this.smallBlind);
-    this.players[this.turn]!.lastAction = { kind: "big blind" };
+    this.turn!.lastAction = { kind: "big blind" };
     this.advanceTurn();
     this.lastRaiser = this.turn;
   }
@@ -84,14 +114,13 @@ export class Room {
     this.pot = 0;
     this.roundBet = 0;
 
-    this.dealer += 1;
-    this.dealer %= this.players.length;
+    this.dealer = this.nextPlayer(this.dealer!);
     this.turn = this.dealer;
     this.lastRaiser = this.turn;
 
-    this.players.forEach((p, i) => {
+    this.players.forEach((p) => {
       p.isFolded = false;
-      if (p.stack === 0) this.getUp(i);
+      if (p.stack === 0) this.getUp(p.id);
       p.roundBet = 0;
       p.potContribution = 0;
       p.lastAction = null;
@@ -100,8 +129,7 @@ export class Room {
 
   advanceTurn() {
     do {
-      this.turn += 1;
-      this.turn %= this.players.length;
+      this.turn = this.nextPlayer(this.turn!);
 
       if (this.turn === this.lastRaiser) {
         if (
@@ -113,7 +141,7 @@ export class Room {
           this.phase = 5;
           return;
         }
-        this.turn = (this.dealer + 1) % this.players.length;
+        this.turn = this.nextPlayer(this.dealer!);
         this.lastRaiser = this.turn;
         this.roundBet = 0;
         this.players.forEach((p) => {
@@ -126,15 +154,13 @@ export class Room {
       }
     } while (
       this.phase < 5 &&
-      (!this.players[this.turn]!.isPlaying ||
-        this.players[this.turn]!.isFolded ||
-        this.players[this.turn]!.stack === 0)
+      (!this.turn!.isPlaying || this.turn!.isFolded || this.turn!.stack === 0)
     );
   }
 
   callRaise(amount = 0) {
     if (this.phase === 0 || this.phase === 5) return;
-    const player = this.players[this.turn]!;
+    const player = this.turn!;
     if (player.isFolded) return;
 
     const toCall = this.roundBet - player.roundBet;
@@ -169,8 +195,8 @@ export class Room {
 
   fold() {
     if (this.phase === 0 || this.phase === 5) return;
-    this.players[this.turn]!.isFolded = true;
-    this.players[this.turn]!.lastAction = { kind: "fold" };
+    this.turn!.isFolded = true;
+    this.turn!.lastAction = { kind: "fold" };
 
     if (this.players.reduce((s, p) => s + +!p.isFolded, 0) === 1) {
       const lastPlayerIndex = this.players.findIndex((p) => !p.isFolded);

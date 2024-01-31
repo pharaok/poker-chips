@@ -13,7 +13,7 @@ export default function Button({
       className={twMerge(
         card
           ? "flex items-center justify-between gap-2 rounded-full border-2 border-black bg-white px-6 py-2 text-black transition hover:bg-neutral-200"
-          : "rounded-full bg-gray-800 px-6 py-2 transition hover:bg-gray-700",
+          : "rounded-full bg-gray-800 px-6 py-2 transition enabled:hover:bg-gray-700 disabled:text-gray-500",
         className,
       )}
     >

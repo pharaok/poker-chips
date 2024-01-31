@@ -1,5 +1,6 @@
 import { formatNumberKMB } from "@repo/utils";
 import { Player, Room } from "@repo/utils/room";
+import { Shield } from "lucide-react";
 
 export default function Player({
   room,
@@ -9,6 +10,8 @@ export default function Player({
   playerIndex: number;
 }) {
   const p = room.players[playerIndex]!;
+  const nextPlayer = (p: Player) => Room.prototype.nextPlayer.call(room, p);
+
   let popupClassName;
   switch (p.lastAction?.kind) {
     case "check":
@@ -57,7 +60,7 @@ export default function Player({
       </div>
       <div
         className={`flex flex-col items-center rounded-lg bg-gray-800/75 px-8 py-2 ${
-          playerIndex === room.turn ? "border-4 border-white" : ""
+          p.id === room.turn?.id ? "border-4 border-white" : ""
         } ${p.isFolded ? "text-white/25" : ""}`}
       >
         <div className="flex justify-between gap-2">
@@ -65,11 +68,14 @@ export default function Player({
         </div>
         <span className="text-2xl font-bold">{p.stack.toLocaleString()}</span>
         <div className="absolute -bottom-8 flex w-full gap-2 text-base text-gray-800 [&>*]:flex [&>*]:h-6 [&>*]:w-6 [&>*]:items-center [&>*]:justify-center [&>*]:rounded-full">
-          {playerIndex === room.dealer && <div className="bg-white">D</div>}
-          {playerIndex === (room.dealer + 1) % room.players.length && (
+          {p.id === room.admin?.id && (
+            <Shield className="fill-green-600 text-white" />
+          )}
+          {p.id === room.dealer?.id && <div className="bg-white">D</div>}
+          {p.id === nextPlayer(room.dealer!).id && (
             <div className="bg-blue-600">SB</div>
           )}
-          {playerIndex === (room.dealer + 2) % room.players.length && (
+          {p.id === nextPlayer(nextPlayer(room.dealer!)).id && (
             <div className="bg-yellow-600">BB</div>
           )}
         </div>
