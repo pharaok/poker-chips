@@ -26,11 +26,12 @@ export class Room {
   phase: number;
   pot: number;
   roundBet: number;
-  turn: Player | null; // Player index
-  dealer: Player | null; // Player index
-  lastRaiser: Player | null; // Player index
+  turn: Player | null;
+  dealer: Player | null;
+  lastBetter: Player | null;
   players: Player[];
   admin: Player | null;
+  lastWinner: Player | null;
 
   constructor() {
     this.buyIn = 10000;
@@ -41,9 +42,10 @@ export class Room {
     this.roundBet = 0;
     this.turn = null;
     this.dealer = null;
-    this.lastRaiser = null;
+    this.lastBetter = null;
     this.players = [];
     this.admin = null;
+    this.lastWinner = null;
   }
 
   joinTable(player: Player) {
@@ -106,7 +108,7 @@ export class Room {
     this.callRaise(this.bigBlind - this.smallBlind);
     this.turn!.lastAction = { kind: "big blind" };
     this.advanceTurn();
-    this.lastRaiser = this.turn;
+    this.lastBetter = this.turn;
   }
 
   resetGame() {
@@ -116,7 +118,7 @@ export class Room {
 
     this.dealer = this.nextPlayer(this.dealer!);
     this.turn = this.dealer;
-    this.lastRaiser = this.turn;
+    this.lastBetter = this.turn;
 
     this.players.forEach((p) => {
       p.isFolded = false;
@@ -131,7 +133,7 @@ export class Room {
     do {
       this.turn = this.nextPlayer(this.turn!);
 
-      if (this.turn === this.lastRaiser) {
+      if (this.turn === this.lastBetter) {
         if (
           this.players.reduce(
             (s, p) => s + +(p.isPlaying && p.stack > 0 && !p.isFolded),
@@ -142,7 +144,7 @@ export class Room {
           return;
         }
         this.turn = this.nextPlayer(this.dealer!);
-        this.lastRaiser = this.turn;
+        this.lastBetter = this.turn;
         this.roundBet = 0;
         this.players.forEach((p) => {
           p.roundBet = 0;
@@ -167,7 +169,7 @@ export class Room {
     const total = Math.min(player.stack, toCall + amount);
 
     if (amount) {
-      this.lastRaiser = this.turn;
+      this.lastBetter = this.turn;
 
       if (this.roundBet) {
         player.lastAction = { kind: "raise", amount };
@@ -199,8 +201,9 @@ export class Room {
     this.turn!.lastAction = { kind: "fold" };
 
     if (this.players.reduce((s, p) => s + +!p.isFolded, 0) === 1) {
-      const lastPlayerIndex = this.players.findIndex((p) => !p.isFolded);
-      this.players[lastPlayerIndex]!.stack += this.pot;
+      const lastPlayer = this.players.find((p) => !p.isFolded)!;
+      lastPlayer.stack += this.pot;
+      this.lastWinner = lastPlayer;
       this.resetGame();
     }
   }
@@ -212,6 +215,7 @@ export class Room {
       !ps.every((p, i) => pots[i]!.players.includes(p))
     )
       return;
+    this.lastWinner = this.players[ps[0]!]!;
 
     ps.forEach((p, i) => {
       this.players[p]!.stack +=

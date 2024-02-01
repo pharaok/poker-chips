@@ -1,6 +1,6 @@
 import { formatNumberKMB } from "@repo/utils";
 import { Player, Room } from "@repo/utils/room";
-import { Shield } from "lucide-react";
+import { Crown, Shield } from "lucide-react";
 
 export default function Player({
   room,
@@ -67,16 +67,21 @@ export default function Player({
           <span>{p.name}</span>
         </div>
         <span className="text-2xl font-bold">{p.stack.toLocaleString()}</span>
-        <div className="absolute -bottom-8 flex w-full gap-2 text-base text-gray-800 [&>*]:flex [&>*]:h-6 [&>*]:w-6 [&>*]:items-center [&>*]:justify-center [&>*]:rounded-full">
+        <div className="absolute -bottom-8 flex w-full gap-2 text-base text-gray-800 [&>*]:flex [&>*]:h-6 [&>*]:w-6 [&>*]:items-center [&>*]:justify-center">
           {p.id === room.admin?.id && (
             <Shield className="fill-green-600 text-white" />
           )}
-          {p.id === room.dealer?.id && <div className="bg-white">D</div>}
-          {p.id === nextPlayer(room.dealer!).id && (
-            <div className="bg-blue-600">SB</div>
+          {p.id === room.dealer?.id && (
+            <div className="rounded-full bg-white">D</div>
           )}
           {p.id === nextPlayer(nextPlayer(room.dealer!)).id && (
-            <div className="bg-yellow-600">BB</div>
+            <div className="rounded-full bg-blue-600">SB</div>
+          )}
+          {p.id === nextPlayer(room.dealer!).id && (
+            <div className="rounded-full bg-yellow-600">BB</div>
+          )}
+          {p.id === room?.lastWinner?.id && (
+            <Crown className="!rounded-none fill-current text-yellow-400" />
           )}
         </div>
       </div>

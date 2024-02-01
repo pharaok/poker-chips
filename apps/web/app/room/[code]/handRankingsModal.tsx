@@ -16,7 +16,7 @@ export default function HandRankingsModal({
       title="HAND RANKINGS"
     >
       <div className="flex flex-col">
-        <ol className="flex flex-col gap-2">
+        <ol className="space-y-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center">
           <li>
             <h3>STRAIGHT FLUSH</h3>
             <div className="flex w-full gap-2">

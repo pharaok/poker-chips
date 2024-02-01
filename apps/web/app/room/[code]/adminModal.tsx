@@ -52,7 +52,7 @@ export default function AdminModal({
         })}
       </div>
       <Button
-        className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+        className="col-span-2 bg-white text-gray-800 hover:!bg-gray-300"
         onPress={() => {
           setOpen(false);
           stacks.forEach((s, i) => {

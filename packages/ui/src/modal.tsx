@@ -21,7 +21,7 @@ export default function Modal({
         {...props}
         className="relative rounded-2xl bg-gray-900 py-4 text-white"
       >
-        <Dialog className="flex max-h-96 w-80 flex-col items-center justify-center gap-2 outline-none">
+        <Dialog className="flex max-h-96 min-w-80 flex-col items-center justify-center gap-2 outline-none">
           {({ close }) => (
             <>
               {props.isDismissable && (
@@ -36,7 +36,7 @@ export default function Modal({
                 {title}
               </Heading>
               <div className="max-h-full w-full overflow-y-scroll">
-                <div className="flex flex-col items-center justify-center gap-2">
+                <div className="flex flex-col items-center justify-center gap-2 px-4 py-1">
                   {children as React.ReactNode}
                 </div>
               </div>

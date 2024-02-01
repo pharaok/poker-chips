@@ -64,7 +64,7 @@ export default function SelectWinnersModal({
           })}
         <Button
           isDisabled={!winners.every((w) => typeof w === "number")}
-          className="bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-600"
+          className="text-gray-800 hover:!bg-gray-300 disabled:bg-gray-600"
           onPress={() => {
             socket.emit("selectWinners", winners as number[]);
           }}

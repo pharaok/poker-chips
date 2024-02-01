@@ -135,7 +135,7 @@ export default function BettingModal({
         </Button>
         <div className="col-span-full m-1 h-px bg-gray-600"></div>
         <Button
-          className="col-span-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+          className="col-span-2 bg-gray-200 text-gray-800 hover:!bg-gray-300"
           onPress={() => {
             setOpen(false);
             socket.emit("raise", betAmount);

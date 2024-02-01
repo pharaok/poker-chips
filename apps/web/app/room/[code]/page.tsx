@@ -31,10 +31,9 @@ export default function Page({ params }: { params: { code: string } }) {
   const player =
     playerIndex !== undefined ? room!.players[playerIndex] : undefined;
   const isAdmin = player?.id === room?.admin?.id;
-
-  const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const callAmount = room ? room.roundBet - player!.roundBet : 0;
 
+  const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isHandsModalOpen, setIsHandsModalOpen] = useState(false);
 
@@ -67,21 +66,21 @@ export default function Page({ params }: { params: { code: string } }) {
             const p = a[i]!;
             if (!p.isPlaying) return cs;
 
-            cs.push(<Player key={i} room={room} playerIndex={i} />);
             if (!room.players[playerIndex!]!.isPlaying) {
               cs.push(
                 <Button
                   className="flex h-12 w-12 items-center justify-center p-3 text-white"
-                  onPress={() => socket.emit("sitDownAt", i + 1)}
+                  onPress={() => socket.emit("sitDownAt", i)}
                 >
                   <Plus className="h-full w-full" />
                 </Button>,
               );
             }
+            cs.push(<Player key={i} room={room} playerIndex={i} />);
             return cs;
           }, [] as React.ReactNode[])}
         >
-          <div className="relative top-8 flex w-full flex-col items-center gap-1 px-6 md:top-0">
+          <div className="flex w-full flex-col items-center gap-1 px-6 md:top-0">
             <span className="text-xl">
               {room &&
                 ["PREGAME", "PREFLOP", "FLOP", "TURN", "RIVER", "POSTGAME"][
@@ -99,23 +98,23 @@ export default function Page({ params }: { params: { code: string } }) {
                   ) {
                     visible = true;
                   }
-                  const transitionDelay =
-                    room.phase < 3 ? (i * 150).toString() + "ms" : "0ms";
                   return (
                     <div
                       key={i}
                       // HACK: !important
-                      className={`w-full rounded-md border-2 transition-[border-color] md:!w-auto ${
-                        visible ? "border-transparent" : ""
-                      }`}
-                      style={{ transitionDelay }}
+                      className={`w-full rounded-md border-2 border-green-400 transition-[border-color] md:!w-auto`}
                     >
                       <Card
                         faceDown
                         className={`h-auto w-full transition-opacity duration-150 md:h-20 md:!w-auto ${
                           visible ? "" : "opacity-0"
                         }`}
-                        style={{ transitionDelay }}
+                        style={{
+                          transitionDelay:
+                            room.phase < 3
+                              ? (i * 150).toString() + "ms"
+                              : "0ms",
+                        }}
                       />
                     </div>
                   );
@@ -168,7 +167,7 @@ export default function Page({ params }: { params: { code: string } }) {
         <TooltipTrigger isOpen={callAmount > 0}>
           <Tooltip>{callAmount.toLocaleString()}</Tooltip>
           <Button
-            className="w-28 bg-green-400 hover:!bg-green-500 disabled:bg-green-800 disabled:text-gray-800"
+            className="w-28 bg-green-400 enabled:hover:!bg-green-500 disabled:bg-green-800 disabled:text-gray-800"
             isDisabled={isDisabled}
             onPress={() => socket.emit("checkCall")}
           >
@@ -176,16 +175,14 @@ export default function Page({ params }: { params: { code: string } }) {
           </Button>
         </TooltipTrigger>
         <Button
-          className="w-28 bg-yellow-400 hover:!bg-yellow-500 disabled:bg-yellow-800 disabled:text-gray-800"
+          className="w-28 bg-yellow-400 enabled:hover:!bg-yellow-500 disabled:bg-yellow-800 disabled:text-gray-800"
           isDisabled={isDisabled}
-          onPress={() => {
-            setIsBetModalOpen(true);
-          }}
+          onPress={() => setIsBetModalOpen(true)}
         >
           {callAmount > 0 ? "RAISE" : "BET"}
         </Button>
         <Button
-          className="w-28 bg-red-400 hover:!bg-red-500 disabled:bg-red-800 disabled:text-gray-800"
+          className="w-28 bg-red-400 enabled:hover:!bg-red-500 disabled:bg-red-800 disabled:text-gray-800"
           isDisabled={isDisabled}
           onPress={() => socket.emit("fold")}
         >
