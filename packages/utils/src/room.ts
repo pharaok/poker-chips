@@ -65,6 +65,7 @@ export class Room {
 
     this.players.splice(playerIndex, 1);
     if (isAdmin) this.admin = this.players[0] ?? null;
+    if (player.id === this.turn?.id) this.advanceTurn();
   }
 
   sitDownAt(id: string, at: number) {
@@ -231,7 +232,6 @@ export class Room {
     // WARN: O(n^2)
     return playersEnum.reduce(
       (pots, [pi, p]) => {
-        if (p.isFolded) return pots;
         const cpp =
           p.potContribution - pots.reduce((s, p) => s + p.contribPerPlayer, 0);
         pots.forEach((pot) => {

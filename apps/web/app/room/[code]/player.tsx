@@ -74,10 +74,10 @@ export default function Player({
           {p.id === room.dealer?.id && (
             <div className="rounded-full bg-white">D</div>
           )}
-          {p.id === nextPlayer(nextPlayer(room.dealer!)).id && (
+          {p.id === (nextPlayer(room.dealer!)).id && (
             <div className="rounded-full bg-blue-600">SB</div>
           )}
-          {p.id === nextPlayer(room.dealer!).id && (
+          {p.id === nextPlayer(nextPlayer(room.dealer!)).id && (
             <div className="rounded-full bg-yellow-600">BB</div>
           )}
           {p.id === room?.lastWinner?.id && (

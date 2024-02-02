@@ -43,21 +43,23 @@ export default function SelectWinnersModal({
                   })`}
                 </h2>
                 <div className="flex flex-wrap justify-center gap-2">
-                  {pot.players.map((playerIdx, j) => (
-                    <ToggleButton
-                      key={j}
-                      isSelected={playerIdx === winners[potIdx]}
-                      onPress={() => {
-                        setWinners((w) => {
-                          const nextWinners = w.slice();
-                          nextWinners[potIdx] = playerIdx;
-                          return nextWinners;
-                        });
-                      }}
-                    >
-                      {room.players[playerIdx]!.name}
-                    </ToggleButton>
-                  ))}
+                  {pot.players
+                    .filter((p) => !room.players[p]!.isFolded)
+                    .map((playerIdx, j) => (
+                      <ToggleButton
+                        key={j}
+                        isSelected={playerIdx === winners[potIdx]}
+                        onPress={() => {
+                          setWinners((w) => {
+                            const nextWinners = w.slice();
+                            nextWinners[potIdx] = playerIdx;
+                            return nextWinners;
+                          });
+                        }}
+                      >
+                        {room.players[playerIdx]!.name}
+                      </ToggleButton>
+                    ))}
                 </div>
               </div>
             );
