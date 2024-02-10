@@ -31,7 +31,7 @@ export default function Page({ params }: { params: { code: string } }) {
   const player =
     playerIndex !== undefined ? room!.players[playerIndex] : undefined;
   const isAdmin = player?.id === room?.admin?.id;
-  const callAmount = room ? room.roundBet - player!.roundBet : 0;
+  const callAmount = room && player ? room.roundBet - player.roundBet : 0;
 
   const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -52,7 +52,6 @@ export default function Page({ params }: { params: { code: string } }) {
     });
     return () => {
       socket.off("updateRoom");
-      socket.emit("leaveRoom");
     };
   }, []);
 
@@ -66,7 +65,7 @@ export default function Page({ params }: { params: { code: string } }) {
             const p = a[i]!;
             if (!p.isPlaying) return cs;
 
-            if (!room.players[playerIndex!]!.isPlaying) {
+            if (!player!.isPlaying) {
               cs.push(
                 <Button
                   className="flex h-12 w-12 items-center justify-center p-3 text-white"
@@ -129,7 +128,10 @@ export default function Page({ params }: { params: { code: string } }) {
             isDisabled={(room && !player?.isFolded && room?.phase > 0) ?? false}
             onPress={() => {
               if (player?.isPlaying) socket.emit("getUp");
-              else router.push("/");
+              else {
+                socket.emit("leaveRoom");
+                router.push("/");
+              }
             }}
           >
             {player?.isPlaying ? (
@@ -156,7 +158,10 @@ export default function Page({ params }: { params: { code: string } }) {
             </Button>
             <Button
               className="flex h-12 w-12 p-3"
-              onPress={() => socket.emit("startGame")}
+              onPress={() => {
+                console.log(room);
+                socket.emit("startGame");
+              }}
             >
               <StepForward className="h-full w-full fill-current" />
             </Button>

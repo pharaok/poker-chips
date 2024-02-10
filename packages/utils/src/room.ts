@@ -16,6 +16,7 @@ export interface Player {
   potContribution: number;
   isFolded: boolean;
   isPlaying: boolean;
+  isDisconnected: boolean;
   lastAction: Action | null;
 }
 
@@ -63,6 +64,11 @@ export class Room {
     const player = this.players[playerIndex]!;
     const isAdmin = player.id === this.admin!.id;
 
+    if (this.phase !== 0) {
+      player.isFolded = true;
+      this.checkForFoldWin();
+    }
+
     this.players.splice(playerIndex, 1);
     if (isAdmin) this.admin = this.players[0] ?? null;
     if (player.id === this.turn?.id) this.advanceTurn();
@@ -88,6 +94,7 @@ export class Room {
 
   nextPlayer(player: Player) {
     const i = this.players.findIndex((p) => p.id === player.id);
+    if (i === -1) return player;
     let j = i;
     do {
       j += 1;
@@ -103,7 +110,6 @@ export class Room {
 
     this.advanceTurn();
     this.callRaise(this.smallBlind);
-    this.turn!.lastAction = { kind: "small blind" };
     this.turn!.lastAction = { kind: "small blind" };
     this.advanceTurn();
     this.callRaise(this.bigBlind - this.smallBlind);
@@ -201,6 +207,10 @@ export class Room {
     this.turn!.isFolded = true;
     this.turn!.lastAction = { kind: "fold" };
 
+    this.checkForFoldWin();
+  }
+
+  private checkForFoldWin() {
     if (this.players.reduce((s, p) => s + +!p.isFolded, 0) === 1) {
       const lastPlayer = this.players.find((p) => !p.isFolded)!;
       lastPlayer.stack += this.pot;

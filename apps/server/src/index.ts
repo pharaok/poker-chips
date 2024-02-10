@@ -7,6 +7,7 @@ import {
 } from "@repo/utils";
 import { nanoid } from "nanoid";
 import { Room, Player } from "@repo/utils/room";
+import { parse, serialize } from "cookie";
 
 const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
@@ -14,30 +15,58 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
   {
     addTrailingSlash: false,
     connectionStateRecovery: {
-      maxDisconnectionDuration: 5 * 60 * 1000,
+      maxDisconnectionDuration: 30 * 1000,
     },
-    cors: { origin: "http://localhost:3000" },
+    cors: {
+      origin: "http://localhost:3000",
+    },
   },
 );
 
+io.engine.on("initial_headers", (headers, request) => {
+  const cookie = parse(request.headers.cookie || "");
+  if (!cookie.id)
+    headers["set-cookie"] = serialize("id", nanoid(), { maxAge: 86400 });
+});
+
 const rooms: { [id: string]: Room } = {};
 const playerRoom: { [id: string]: string } = {};
+const recovery: { [id: string]: { roomId: string; socketId: string } } = {};
 
 const leaveRoom = (socket: Socket) => {
   const rId = playerRoom[socket.id];
-  if (rId && rooms[rId]) {
-    socket.leave(rId);
-    rooms[rId]?.getUp(socket.id);
-    rooms[rId]?.leaveTable(socket.id);
-    io.to(rId).emit("updateRoom", rooms[rId]!);
-    if (rooms[rId]!.players.length === 0) {
-      delete rooms[rId];
-    }
+  if (!rId) return;
+  const room = rooms[rId]!;
+  socket.leave(rId);
+  room.getUp(socket.id);
+  room.leaveTable(socket.id);
+  io.to(rId).emit("updateRoom", room);
+  if (room.players.length === 0) {
+    delete rooms[rId];
   }
   delete playerRoom[socket.id];
 };
 
 io.on("connection", (socket) => {
+  let cId: string | undefined;
+  if (socket.request.headers.cookie) {
+    cId = parse(socket.request.headers.cookie).id!;
+    if (recovery[cId]) {
+      // reconnect
+      const { roomId, socketId: prevId } = recovery[cId]!;
+      socket.join(roomId);
+      const room = rooms[roomId]!;
+      const player = room.players.find((p) => p.id === prevId)!;
+      player.id = socket.id;
+      player.isDisconnected = false;
+      playerRoom[socket.id] = roomId;
+
+      delete recovery[cId];
+      delete playerRoom[prevId];
+
+      console.log("recovered connection for:", cId);
+    }
+  }
   socket.on("createRoom", (callback) => {
     const id = nanoid(8);
     rooms[id] = new Room();
@@ -61,6 +90,7 @@ io.on("connection", (socket) => {
       potContribution: 0,
       isFolded: false,
       isPlaying: true,
+      isDisconnected: false,
       lastAction: null,
     };
     if (!room.players.some((p) => p.id === socket.id)) {
@@ -151,10 +181,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leaveRoom", () => {
+    console.log("left room:", socket.id);
     leaveRoom(socket);
   });
   socket.on("disconnect", () => {
-    leaveRoom(socket);
+    if (!cId) return;
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    recovery[cId] = { roomId: rId, socketId: socket.id };
+    setTimeout(() => {
+      leaveRoom(socket);
+      delete recovery[cId!];
+    }, 30 * 1000);
+    room.players.find((p) => p.id === socket.id)!.isDisconnected = true;
+    io.to(rId).emit("updateRoom", room);
+    console.log("client disconnected:", cId);
   });
 });
 
