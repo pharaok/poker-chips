@@ -19,10 +19,9 @@ export default function Player({
   const pathLength = pathRef.current?.getTotalLength() ?? 0;
 
   useEffect(() => {
-    if (!svgRef.current) return;
-    setBBox(svgRef.current!.getBoundingClientRect());
     const observer = new ResizeObserver(() => {
-      setBBox(svgRef.current!.getBoundingClientRect());
+      if (!svgRef.current) return;
+      setBBox(svgRef.current.getBoundingClientRect());
     });
     observer.observe(svgRef.current!);
 

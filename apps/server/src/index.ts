@@ -161,13 +161,13 @@ io.on("connection", (socket) => {
 
     io.to(rId).emit("updateRoom", room);
   });
-  socket.on("selectWinners", (ps) => {
+  socket.on("selectWinners", (pIds) => {
     const rId = playerRoom[socket.id];
     if (!rId) return;
     const room = rooms[rId]!;
     if (socket.id !== room.admin?.id) return;
 
-    room.chooseWinner(ps);
+    room.chooseWinner(pIds);
     io.to(rId).emit("updateRoom", room);
   });
   socket.on("setStack", (i, stack) => {
@@ -181,8 +181,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leaveRoom", () => {
-    console.log("left room:", socket.id);
     leaveRoom(socket);
+    console.log("left room:", socket.id);
   });
   socket.on("disconnect", () => {
     if (!cId) return;

@@ -219,38 +219,40 @@ export class Room {
     }
   }
 
-  chooseWinner(ps: number[]) {
+  chooseWinner(pIds: string[]) {
     const pots = this.generatePots();
     if (
-      ps.length !== pots.length ||
-      !ps.every((p, i) => pots[i]!.players.includes(p))
+      pIds.length !== pots.length ||
+      !pIds.every((pId, i) => pots[i]!.players.some((id) => id === pId))
     )
       return;
-    this.lastWinner = this.players[ps[0]!]!;
+    this.lastWinner = this.players.find((p) => p.id === pIds[0]) ?? null;
 
-    ps.forEach((p, i) => {
-      this.players[p]!.stack +=
-        pots[i]!.contribPerPlayer * pots[i]!.players.length;
+    pIds.forEach((pId, i) => {
+      this.players.find((p) => p.id === pId)!.stack += pots[i]!.value;
     });
 
     this.resetGame();
   }
 
   generatePots() {
-    const playersEnum = this.players.map((p, i): [number, Player] => [i, p]);
-    playersEnum.sort((pa, pb) => pa[1].potContribution - pb[1].potContribution);
-    // WARN: O(n^2)
-    return playersEnum.reduce(
-      (pots, [pi, p]) => {
-        const cpp =
-          p.potContribution - pots.reduce((s, p) => s + p.contribPerPlayer, 0);
-        pots.forEach((pot) => {
-          pot.players.push(pi);
-        });
-        if (cpp) pots.push({ contribPerPlayer: cpp, players: [pi] });
-        return pots;
-      },
-      [] as { contribPerPlayer: number; players: number[] }[],
-    );
+    let prevCpp = 0;
+    const pots: { value: number; players: string[] }[] = [];
+    this.players
+      .toSorted((pa, pb) => pa.potContribution - pb.potContribution)
+      .forEach((p, i, a) => {
+        const l = a.length - i;
+        let cpp = p.potContribution;
+
+        if (!p.isFolded) {
+          pots.forEach((pot) => pot.players.push(p.id));
+
+          if (cpp > prevCpp) {
+            pots.push({ value: (cpp - prevCpp) * l, players: [p.id] });
+            prevCpp = cpp;
+          }
+        }
+      });
+    return pots;
   }
 }

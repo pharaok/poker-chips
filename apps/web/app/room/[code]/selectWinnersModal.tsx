@@ -12,11 +12,11 @@ export default function SelectWinnersModal({
   isOpen: boolean;
   room: Room | null;
 }) {
-  const [winners, setWinners] = useState<(number | null)[]>([]);
+  const [winners, setWinners] = useState<(string | null)[]>([]);
   const pots = room && Room.prototype.generatePots.call(room);
   useEffect(() => {
     if (room?.phase === 5) {
-      const nextWinners: (number | null)[] = Array.from(pots!, () => null);
+      const nextWinners: typeof winners = Array.from(pots!, () => null);
       pots?.forEach((pot, i) => {
         if (pot.players.length === 1) {
           nextWinners[i] = pot.players[0]!;
@@ -38,26 +38,29 @@ export default function SelectWinnersModal({
                 className="flex flex-col items-center justify-center gap-2"
               >
                 <h2 className="text-lg">
-                  {`${potIdx === 0 ? "MAIN POT" : `SIDE POT ${potIdx}`} (${
-                    pot.contribPerPlayer * pot.players.length
-                  })`}
+                  {`${
+                    potIdx === 0 ? "MAIN POT" : `SIDE POT ${potIdx}`
+                  } (${pot.value.toLocaleString()})`}
                 </h2>
                 <div className="flex flex-wrap justify-center gap-2">
                   {pot.players
-                    .filter((p) => !room.players[p]!.isFolded)
-                    .map((playerIdx, j) => (
+                    .filter(
+                      (pId) =>
+                        !room.players.find((p) => p.id === pId)!.isFolded,
+                    )
+                    .map((pId, j) => (
                       <ToggleButton
                         key={j}
-                        isSelected={playerIdx === winners[potIdx]}
+                        isSelected={pId === winners[potIdx]}
                         onPress={() => {
                           setWinners((w) => {
                             const nextWinners = w.slice();
-                            nextWinners[potIdx] = playerIdx;
+                            nextWinners[potIdx] = pId;
                             return nextWinners;
                           });
                         }}
                       >
-                        {room.players[playerIdx]!.name}
+                        {room.players.find((p) => p.id === pId)!.name}
                       </ToggleButton>
                     ))}
                 </div>
@@ -65,10 +68,10 @@ export default function SelectWinnersModal({
             );
           })}
         <Button
-          isDisabled={!winners.every((w) => typeof w === "number")}
-          className="text-gray-800 hover:!bg-gray-300 disabled:bg-gray-600"
+          isDisabled={!winners.every((w) => w !== null)}
+          className="bg-white !text-gray-800 hover:!bg-gray-300 disabled:!bg-gray-600"
           onPress={() => {
-            socket.emit("selectWinners", winners as number[]);
+            socket.emit("selectWinners", winners as string[]);
           }}
         >
           CONFIRM

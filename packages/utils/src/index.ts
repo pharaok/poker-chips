@@ -11,7 +11,7 @@ export interface ClientToServerEvents {
   checkCall: () => void;
   raise: (amount: number) => void;
   fold: () => void;
-  selectWinners: (playerIndices: number[]) => void;
+  selectWinners: (playerIds: string[]) => void;
   setStack: (playerIndex: number, stack: number) => void;
 }
 export interface ServerToClientEvents {
