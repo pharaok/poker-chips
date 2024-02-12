@@ -16,17 +16,24 @@ export default function Player({
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const [bBox, setBBox] = useState(new DOMRect());
-  const pathLength = pathRef.current?.getTotalLength() ?? 0;
+  const [pathLength, setPathLength] = useState(0);
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
-      if (!svgRef.current) return;
-      setBBox(svgRef.current.getBoundingClientRect());
+      if (svgRef.current) setBBox(svgRef.current.getBoundingClientRect());
     });
     observer.observe(svgRef.current!);
 
     return () => observer.disconnect();
-  }, [svgRef, pathRef]);
+  }, [svgRef]);
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (pathRef.current) setPathLength(pathRef.current.getTotalLength());
+    });
+    observer.observe(pathRef.current!, { attributeFilter: ["d"] });
+
+    return () => observer.disconnect();
+  }, [pathRef]);
 
   let popupClassName;
   switch (player.lastAction?.kind) {
