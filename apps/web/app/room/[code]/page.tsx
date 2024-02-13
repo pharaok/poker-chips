@@ -14,7 +14,7 @@ import {
   StepForward,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TooltipTrigger } from "react-aria-components";
 import { socket } from "../../socket";
 import AdminModal from "./adminModal";
@@ -32,10 +32,15 @@ export default function Page({ params }: { params: { code: string } }) {
     playerIndex !== undefined ? room!.players[playerIndex] : undefined;
   const isAdmin = player?.id === room?.admin?.id;
   const callAmount = room && player ? room.roundBet - player.roundBet : 0;
+  const lastCallAmount = useRef(0); // display during tooltip out animation
+  if (callAmount > 0) lastCallAmount.current = callAmount;
 
   const [isBetModalOpen, setIsBetModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isHandsModalOpen, setIsHandsModalOpen] = useState(false);
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isCpTooltipOpen, setIsCpTooltipOpen] = useState(false);
 
   const isDisabled =
     room?.phase === 0 || room?.phase === 5 || room?.turn?.id !== player?.id;
@@ -57,27 +62,56 @@ export default function Page({ params }: { params: { code: string } }) {
 
   return (
     <main className="min-w-screen flex min-h-screen flex-col items-center justify-center">
-      <h2 className="fixed left-4 top-4 text-2xl text-white">{`#${params.code}`}</h2>
       <div className="relative flex w-full flex-grow items-center justify-center">
-        <Table
-          around={room?.players.reduce((cs, _, i, a) => {
-            i = (i + playerIndex!) % a.length;
-            const p = a[i]!;
-            if (!p.isPlaying) return cs;
+        <TooltipTrigger isOpen={isCpTooltipOpen}>
+          <Tooltip
+            placement="bottom"
+            triggerRef={buttonRef}
+            className="text-2xl"
+          >
+            Copied to clipboard!
+          </Tooltip>
+          <button
+            ref={buttonRef}
+            className="absolute left-4 top-4 z-10 text-2xl text-white"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              setIsCpTooltipOpen(true);
+              setTimeout(() => setIsCpTooltipOpen(false), 3000);
+            }}
+          >{`#${params.code}`}</button>
+        </TooltipTrigger>
 
-            if (!player!.isPlaying) {
-              cs.push(
-                <Button
-                  className="flex h-12 w-12 items-center justify-center p-3 text-white"
-                  onPress={() => socket.emit("sitDownAt", i)}
-                >
-                  <Plus className="h-full w-full" />
-                </Button>,
-              );
-            }
-            cs.push(<Player key={i} room={room} playerIndex={i} />);
-            return cs;
-          }, [] as React.ReactNode[])}
+        <Table
+          around={
+            room?.players.reduce((s, p) => s + +p.isPlaying, 0)
+              ? room?.players.reduce((cs, _, i, a) => {
+                  i = (i + playerIndex!) % a.length;
+                  const p = a[i]!;
+                  if (!p?.isPlaying) return cs;
+
+                  if (!player!.isPlaying) {
+                    cs.push(
+                      <Button
+                        className="flex h-12 w-12 items-center justify-center p-3 text-white"
+                        onPress={() => socket.emit("sitDownAt", i)}
+                      >
+                        <Plus className="h-full w-full" />
+                      </Button>,
+                    );
+                  }
+                  cs.push(<Player key={i} room={room} playerIndex={i} />);
+                  return cs;
+                }, [] as React.ReactNode[])
+              : [
+                  <Button
+                    className="flex h-12 w-12 items-center justify-center p-3 text-white"
+                    onPress={() => socket.emit("sitDownAt", 0)}
+                  >
+                    <Plus className="h-full w-full" />
+                  </Button>,
+                ]
+          }
         >
           <div className="flex w-full flex-col items-center gap-1 px-6 md:top-0">
             <span className="text-xl">
@@ -170,7 +204,7 @@ export default function Page({ params }: { params: { code: string } }) {
       </div>
       <div className="flex w-full items-center justify-between gap-4 bg-gray-800 p-4 text-xl text-gray-800 sm:!justify-center">
         <TooltipTrigger isOpen={callAmount > 0}>
-          <Tooltip>{callAmount.toLocaleString()}</Tooltip>
+          <Tooltip>{lastCallAmount.current.toLocaleString()}</Tooltip>
           <Button
             className="w-28 bg-green-400 enabled:hover:!bg-green-500 disabled:bg-green-800 disabled:text-gray-800"
             isDisabled={isDisabled}

@@ -1,3 +1,18 @@
 /* @tailwind base; */
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .slide-up {
+    --slide-from: translateY(0.5rem);
+  }
+  .slide-right {
+    --slide-from: translateX(-0.5rem);
+  }
+  .slide-down {
+    --slide-from: translateY(-0.5rem);
+  }
+  .slide-left {
+    --slide-from: translateX(0.5rem);
+  }
+}

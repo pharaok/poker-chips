@@ -19,7 +19,7 @@ export default function Modal({
     >
       <RAModal
         {...props}
-        className="relative rounded-2xl bg-gray-900 py-4 text-white"
+        className="relative m-8 rounded-2xl bg-gray-900 py-4 text-white"
       >
         <Dialog className="flex max-h-96 min-w-80 flex-col items-center justify-center gap-2 outline-none">
           {({ close }) => (
