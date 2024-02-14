@@ -97,7 +97,7 @@ export default function Player({
           {player.id === room.admin?.id && (
             <Shield className="fill-green-600 text-white" />
           )}
-          {player.id === room.dealer?.id && (
+          {player.id === room.dealer!.id && (
             <div className="rounded-full bg-white">D</div>
           )}
           {player.id === nextPlayer(room.dealer!).id && (

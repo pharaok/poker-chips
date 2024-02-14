@@ -108,6 +108,8 @@ export class Room {
     if (this.phase !== 0) return;
     this.phase += 1;
 
+    this.turn = this.dealer;
+    this.lastBetter = this.turn;
     this.advanceTurn();
     this.callRaise(this.smallBlind);
     this.turn!.lastAction = { kind: "small blind" };
@@ -124,8 +126,6 @@ export class Room {
     this.roundBet = 0;
 
     this.dealer = this.nextPlayer(this.dealer!);
-    this.turn = this.dealer;
-    this.lastBetter = this.turn;
 
     this.players.forEach((p) => {
       p.isFolded = false;
@@ -237,21 +237,24 @@ export class Room {
 
   generatePots() {
     let prevCpp = 0;
+    let prevPot = 0;
     const pots: { value: number; players: string[] }[] = [];
     this.players
       .toSorted((pa, pb) => pa.potContribution - pb.potContribution)
       .forEach((p, i, a) => {
         const l = a.length - i;
         let cpp = p.potContribution;
+        prevPot += (cpp - prevCpp) * l;
 
         if (!p.isFolded) {
           pots.forEach((pot) => pot.players.push(p.id));
 
           if (cpp > prevCpp) {
-            pots.push({ value: (cpp - prevCpp) * l, players: [p.id] });
-            prevCpp = cpp;
+            pots.push({ value: prevPot, players: [p.id] });
+            prevPot = 0;
           }
         }
+        prevCpp = cpp;
       });
     return pots;
   }
