@@ -1,12 +1,20 @@
 {
   "name": "@repo/utils",
   "version": "1.0.0",
-  "description": "",
+  "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./room": "./src/room.ts"
+    ".": {
+      "types": "./dist/index.d.js",
+      "default": "./dist/index.js"
+    },
+    "./room": {
+      "types": "./dist/room.d.js",
+      "default": "./dist/room.js"
+    }
   },
-  "scripts": {},
+  "scripts": {
+    "dev": "nodemon -e ts --watch src --exec tsc"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

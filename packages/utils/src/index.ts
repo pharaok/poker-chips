@@ -1,5 +1,5 @@
 import { Socket as SocketIO } from "socket.io";
-import { Room } from "./room";
+import { Room } from "./room.js";
 
 export interface ClientToServerEvents {
   createRoom: (callback: (id: string) => void) => void;

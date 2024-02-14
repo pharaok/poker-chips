@@ -8,6 +8,7 @@ import {
 import { nanoid } from "nanoid";
 import { Room, Player } from "@repo/utils/room";
 import { parse, serialize } from "cookie";
+import "dotenv/config";
 
 const server = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
@@ -18,7 +19,10 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, {}, {}>(
       maxDisconnectionDuration: 30 * 1000,
     },
     cors: {
-      origin: "http://localhost:3000",
+      origin: ["http://localhost:3000", process.env.ORIGIN].filter(
+        (o) => o,
+      ) as string[],
+      credentials: true,
     },
   },
 );
