@@ -69,9 +69,9 @@ export class Room {
       this.checkForFoldWin();
     }
 
-    this.players.splice(playerIndex, 1);
     if (isAdmin) this.admin = this.players[0] ?? null;
     if (player.id === this.turn?.id) this.advanceTurn();
+    this.players.splice(playerIndex, 1);
   }
 
   sitDownAt(id: string, at: number) {
@@ -137,9 +137,10 @@ export class Room {
   }
 
   advanceTurn() {
+    const start = this.turn!;
+
     do {
       this.turn = this.nextPlayer(this.turn!);
-
       if (this.turn === this.lastBetter) {
         if (
           this.players.reduce(
@@ -163,7 +164,10 @@ export class Room {
       }
     } while (
       this.phase < 5 &&
-      (!this.turn!.isPlaying || this.turn!.isFolded || this.turn!.stack === 0)
+      (!this.turn!.isPlaying ||
+        this.turn!.isFolded ||
+        this.turn!.stack === 0) &&
+      this.turn.id !== start.id
     );
   }
 

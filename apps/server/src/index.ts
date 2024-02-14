@@ -40,6 +40,7 @@ const recovery: { [id: string]: { roomId: string; socketId: string } } = {};
 const leaveRoom = (socket: Socket) => {
   const rId = playerRoom[socket.id];
   if (!rId) return;
+
   const room = rooms[rId]!;
   socket.leave(rId);
   room.getUp(socket.id);

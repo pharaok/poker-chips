@@ -192,10 +192,7 @@ export default function Page({ params }: { params: { code: string } }) {
             </Button>
             <Button
               className="flex h-12 w-12 p-3"
-              onPress={() => {
-                console.log(room);
-                socket.emit("startGame");
-              }}
+              onPress={() => socket.emit("startGame")}
             >
               <StepForward className="h-full w-full fill-current" />
             </Button>
