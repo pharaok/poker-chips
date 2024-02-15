@@ -69,12 +69,13 @@ io.on("connection", (socket) => {
       delete recovery[cId];
       delete playerRoom[prevId];
 
-      console.log("recovered connection for:", cId);
+      console.log("recover:", cId);
     }
   }
-  socket.on("createRoom", (callback) => {
+  console.log("connect:", cId);
+  socket.on("createRoom", (buyIn, smallBlind, bigBlind, callback) => {
     const id = nanoid(8);
-    rooms[id] = new Room();
+    rooms[id] = new Room(buyIn, smallBlind, bigBlind);
 
     callback(id);
   });
@@ -187,7 +188,6 @@ io.on("connection", (socket) => {
 
   socket.on("leaveRoom", () => {
     leaveRoom(socket);
-    console.log("left room:", socket.id);
   });
   socket.on("disconnect", () => {
     if (!cId) return;
@@ -201,7 +201,7 @@ io.on("connection", (socket) => {
     }, 30 * 1000);
     room.players.find((p) => p.id === socket.id)!.isDisconnected = true;
     io.to(rId).emit("updateRoom", room);
-    console.log("client disconnected:", cId);
+    console.log("disconnect:", cId);
   });
 });
 

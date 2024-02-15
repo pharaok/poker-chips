@@ -68,8 +68,8 @@ export default function SelectWinnersModal({
             );
           })}
         <Button
+          kind="primary"
           isDisabled={!winners.every((w) => w !== null)}
-          className="bg-white !text-gray-800 hover:!bg-gray-300 disabled:!bg-gray-600"
           onPress={() => {
             socket.emit("selectWinners", winners as string[]);
           }}

@@ -2,7 +2,7 @@ import Input from "@repo/ui/input";
 import Modal from "@repo/ui/modal";
 import { Room } from "@repo/utils/room";
 import { Fragment, useEffect, useState } from "react";
-import { NumberField } from "react-aria-components";
+import { Label, NumberField } from "react-aria-components";
 import { socket } from "../../socket";
 import Button from "@repo/ui/button";
 
@@ -29,13 +29,11 @@ export default function AdminModal({
       onOpenChange={setOpen}
       title="ADMIN MENU"
     >
-      <div className="grid grid-cols-2 gap-2 px-6">
+      <div className="px-6">
         {room?.players.map((p, i) => {
           return (
             <Fragment key={i}>
-              <span>{p.name}</span>
               <NumberField
-                aria-label={`${p.name}'s stack`}
                 value={stacks[i]}
                 onChange={(v) => {
                   setStacks((s) => {
@@ -44,15 +42,17 @@ export default function AdminModal({
                     return newStacks;
                   });
                 }}
+                className="grid grid-cols-2 items-center gap-2"
               >
-                <Input className="w-full" />
+                <Label>{p.name}</Label>
+                <Input className="w-32" />
               </NumberField>
             </Fragment>
           );
         })}
       </div>
       <Button
-        className="col-span-2 bg-white text-gray-800 hover:!bg-gray-300"
+        kind="primary"
         onPress={() => {
           setOpen(false);
           stacks.forEach((s, i) => {

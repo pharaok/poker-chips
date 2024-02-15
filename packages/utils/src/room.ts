@@ -34,10 +34,10 @@ export class Room {
   admin: Player | null;
   lastWinner: Player | null;
 
-  constructor() {
-    this.buyIn = 10000;
-    this.smallBlind = 100;
-    this.bigBlind = 200;
+  constructor(buyIn = 10000, smallBlind = 100, bigBlind = 200) {
+    this.buyIn = buyIn;
+    this.smallBlind = smallBlind;
+    this.bigBlind = bigBlind;
     this.phase = 0;
     this.pot = 0;
     this.roundBet = 0;

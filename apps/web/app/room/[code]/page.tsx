@@ -74,6 +74,7 @@ export default function Page({ params }: { params: { code: string } }) {
           <button
             ref={buttonRef}
             className="absolute left-4 top-4 z-10 text-2xl text-white"
+            disabled={!navigator.clipboard}
             onClick={() => {
               navigator.clipboard.writeText(window.location.href);
               setIsCpTooltipOpen(true);

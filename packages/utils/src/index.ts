@@ -2,7 +2,12 @@ import { Socket as SocketIO } from "socket.io";
 import { Room } from "./room.js";
 
 export interface ClientToServerEvents {
-  createRoom: (callback: (id: string) => void) => void;
+  createRoom: (
+    buyIn: number,
+    smallBlind: number,
+    bigBlind: number,
+    callback: (id: string) => void,
+  ) => void;
   joinRoom: (name: string, id: string, callback: (room: Room) => void) => void;
   leaveRoom: () => void;
   sitDownAt: (at: number) => void;
