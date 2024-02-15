@@ -13,7 +13,7 @@ import {
   Plus,
   StepForward,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, notFound } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { TooltipTrigger } from "react-aria-components";
 import { socket } from "../../socket";
@@ -26,7 +26,7 @@ import SelectWinnersModal from "./selectWinnersModal";
 export default function Page({ params }: { params: { code: string } }) {
   const router = useRouter();
 
-  const [room, setRoom] = useState<Room | null>(null);
+  const [room, setRoom] = useState<Room | null | undefined>(undefined);
   const playerIndex = room?.players.findIndex((p) => p.id === socket.id);
   const player =
     playerIndex !== undefined ? room!.players[playerIndex] : undefined;
@@ -59,6 +59,8 @@ export default function Page({ params }: { params: { code: string } }) {
       socket.off("updateRoom");
     };
   }, []);
+
+  if (room === null) notFound();
 
   return (
     <main className="min-w-screen flex min-h-screen flex-col items-center justify-center">
@@ -227,7 +229,7 @@ export default function Page({ params }: { params: { code: string } }) {
         </Button>
       </div>
       <BettingModal
-        room={room}
+        room={room ?? null}
         isOpen={isBetModalOpen}
         setOpen={setIsBetModalOpen}
       ></BettingModal>

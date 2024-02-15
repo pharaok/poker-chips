@@ -29,7 +29,7 @@ export default function AdminModal({
       onOpenChange={setOpen}
       title="ADMIN MENU"
     >
-      <div className="px-6">
+      <div className="flex flex-col gap-2 px-6">
         {room?.players.map((p, i) => {
           return (
             <Fragment key={i}>

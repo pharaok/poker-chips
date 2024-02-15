@@ -1,3 +1,5 @@
+"use client";
+
 import { getPointOnPill } from "@repo/utils";
 import { useRef } from "react";
 

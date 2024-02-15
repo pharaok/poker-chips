@@ -31,8 +31,8 @@ export default function JoinRoomModal({
       <div className="flex w-full flex-col items-center gap-4 px-6">
         <div className="w-full overflow-scroll">
           {rooms && (
-            <table className="[&_td]:p-2 [&_th]:p-2">
-              <thead className="[&>th]:whitespace-nowrap">
+            <table className="whitespace-nowrap text-center [&_td]:p-2 [&_th]:p-2">
+              <thead>
                 <th>NAME</th>
                 <th>HOST</th>
                 <th>PLAYERS</th>
@@ -47,12 +47,16 @@ export default function JoinRoomModal({
                   >
                     <td>{room.name}</td>
                     <td>{room.host}</td>
-                    <td className="flex gap-1">
+                    <td>
                       {room.playerCount}
-                      {room.playerCount === 1 ? <User /> : <Users />}
+                      {room.playerCount === 1 ? (
+                        <User className="inline" />
+                      ) : (
+                        <Users className="inline" />
+                      )}
                     </td>
-                    <td>{room.buyIn}</td>
-                    <td>{`${room.smallBlind}/${room.bigBlind}`}</td>
+                    <td>{room.buyIn.toLocaleString()}</td>
+                    <td>{`${room.smallBlind.toLocaleString()}/${room.bigBlind.toLocaleString()}`}</td>
                   </tr>
                 );
               })}

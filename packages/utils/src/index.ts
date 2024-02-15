@@ -19,7 +19,11 @@ export interface ClientToServerEvents {
     bigBlind: number,
     callback: (id: string) => void,
   ) => void;
-  joinRoom: (name: string, id: string, callback: (room: Room) => void) => void;
+  joinRoom: (
+    name: string,
+    id: string,
+    callback: (room: Room | null) => void,
+  ) => void;
   leaveRoom: () => void;
   sitDownAt: (at: number) => void;
   getUp: () => void;

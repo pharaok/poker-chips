@@ -80,7 +80,10 @@ io.on("connection", (socket) => {
     callback(id);
   });
   socket.on("joinRoom", (name, rId, callback) => {
-    if (!rooms[rId]) return; // TODO:
+    if (!rooms[rId]) {
+      callback(null);
+      return;
+    }
     const room = rooms[rId]!;
     // leave all other rooms
     socket.rooms.forEach((room) => {
