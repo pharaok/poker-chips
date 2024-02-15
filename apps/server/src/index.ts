@@ -73,14 +73,14 @@ io.on("connection", (socket) => {
     }
   }
   console.log("connect:", cId);
-  socket.on("createRoom", (buyIn, smallBlind, bigBlind, callback) => {
+  socket.on("createRoom", (name, buyIn, smallBlind, bigBlind, callback) => {
     const id = nanoid(8);
-    rooms[id] = new Room(buyIn, smallBlind, bigBlind);
+    rooms[id] = new Room(name, buyIn, smallBlind, bigBlind);
 
     callback(id);
   });
   socket.on("joinRoom", (name, rId, callback) => {
-    if (!rooms[rId]) rooms[rId] = new Room();
+    if (!rooms[rId]) return; // TODO:
     const room = rooms[rId]!;
     // leave all other rooms
     socket.rooms.forEach((room) => {
@@ -184,6 +184,22 @@ io.on("connection", (socket) => {
 
     room.players[i]!.stack = stack;
     io.to(rId).emit("updateRoom", room);
+  });
+
+  socket.on("getRooms", (callback) => {
+    const rs = Object.entries(rooms).map(([code, room]) => {
+      const { name, buyIn, smallBlind, bigBlind } = room;
+      return {
+        code,
+        name,
+        host: room.admin!.name,
+        buyIn,
+        smallBlind,
+        bigBlind,
+        playerCount: room.players.filter((p) => !p.isDisconnected).length,
+      };
+    });
+    callback(rs);
   });
 
   socket.on("leaveRoom", () => {

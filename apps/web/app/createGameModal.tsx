@@ -6,7 +6,7 @@ import { Label, NumberField } from "react-aria-components";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function CreateGameModal({
+export default function CreateRoomModal({
   isOpen,
   setOpen,
 }: {
@@ -14,6 +14,7 @@ export default function CreateGameModal({
   setOpen: (v: boolean) => void;
 }) {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [buyIn, setBuyIn] = useState(10000);
   const [smallBlind, setSmallBlind] = useState(100);
   const [bigBlind, setBigBlind] = useState(200);
@@ -22,9 +23,17 @@ export default function CreateGameModal({
       isOpen={isOpen}
       onOpenChange={setOpen}
       isDismissable
-      title="CREATE GAME"
+      title="CREATE ROOM"
     >
       <div className="flex flex-col items-center gap-2 px-6 [&>div]:grid [&>div]:grid-cols-2 [&>div]:items-center [&>div]:gap-2 [&_input]:w-32">
+        <div>
+          <Label>NAME</Label>
+          <Input
+            placeholder="NAME"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
         <NumberField value={buyIn} onChange={setBuyIn}>
           <Label>BUY IN</Label>
           <Input />
@@ -41,8 +50,13 @@ export default function CreateGameModal({
           kind="primary"
           className="col-span-2"
           onPress={() =>
-            socket.emit("createRoom", buyIn, smallBlind, bigBlind, (code) =>
-              router.push(`/room/${code}`),
+            socket.emit(
+              "createRoom",
+              name,
+              buyIn,
+              smallBlind,
+              bigBlind,
+              (code) => router.push(`/room/${code}`),
             )
           }
         >

@@ -21,6 +21,7 @@ export interface Player {
 }
 
 export class Room {
+  name: string;
   buyIn: number;
   smallBlind: number;
   bigBlind: number;
@@ -34,7 +35,8 @@ export class Room {
   admin: Player | null;
   lastWinner: Player | null;
 
-  constructor(buyIn = 10000, smallBlind = 100, bigBlind = 200) {
+  constructor(name: string, buyIn = 10000, smallBlind = 100, bigBlind = 200) {
+    this.name = name;
     this.buyIn = buyIn;
     this.smallBlind = smallBlind;
     this.bigBlind = bigBlind;

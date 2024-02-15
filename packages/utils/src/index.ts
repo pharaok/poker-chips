@@ -1,8 +1,19 @@
 import { Socket as SocketIO } from "socket.io";
 import { Room } from "./room.js";
 
+export type Rooms = {
+  name: string;
+  code: string;
+  host: string;
+  buyIn: number;
+  smallBlind: number;
+  bigBlind: number;
+  playerCount: number;
+}[];
+
 export interface ClientToServerEvents {
   createRoom: (
+    name: string,
     buyIn: number,
     smallBlind: number,
     bigBlind: number,
@@ -18,6 +29,7 @@ export interface ClientToServerEvents {
   fold: () => void;
   selectWinners: (playerIds: string[]) => void;
   setStack: (playerIndex: number, stack: number) => void;
+  getRooms: (callback: (rooms: Rooms) => void) => void;
 }
 export interface ServerToClientEvents {
   updateRoom: (room: Room) => void;

@@ -15,13 +15,13 @@ export default function Modal({
   return (
     <ModalOverlay
       {...props}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-all"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-8 transition-all"
     >
       <RAModal
         {...props}
-        className="relative m-8 rounded-2xl bg-gray-900 py-4 text-white"
+        className="relative max-w-full overflow-hidden rounded-2xl bg-gray-900 py-4 text-white"
       >
-        <Dialog className="flex max-h-96 min-w-80 flex-col items-center justify-center gap-2 outline-none">
+        <Dialog className="flex  max-h-96 min-w-80 flex-col items-center justify-center gap-2 outline-none">
           {({ close }) => (
             <>
               {props.isDismissable && (
