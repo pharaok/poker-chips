@@ -19,17 +19,21 @@ export default function BettingModal({
   const [betAmount, setBetAmount] = useState(0);
   const j = room?.players.findIndex((p) => p.id === socket.id);
 
-  const callAmount =
-    (room && room!.roundBet - room!.players[j!]!.roundBet) || 0;
-  const minBet = (room && Math.max(room.roundBet, room.bigBlind)) || 0;
-  const maxBet = (j !== undefined && room!.players[j]!.stack - callAmount) || 0;
-
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (isOpen) setBetAmount(minBet);
   }, [isOpen]);
+
+  let callAmount = 0;
+  let minBet = 0;
+  let maxBet = 0;
+  if (room && j && j !== -1) {
+    callAmount = room.roundBet - room.players[j]!.roundBet;
+    minBet = Math.max(room.roundBet, room.bigBlind);
+    maxBet = room.players[j]!.stack - callAmount;
+  }
 
   return (
     <Modal isDismissable isOpen={isOpen} onOpenChange={setOpen} title="BET">

@@ -63,6 +63,7 @@ export class Room {
   }
   leaveTable(id: string) {
     const playerIndex = this.players.findIndex((p) => p.id === id);
+    if (playerIndex === -1) return;
     const player = this.players[playerIndex]!;
     const isAdmin = player.id === this.admin!.id;
 

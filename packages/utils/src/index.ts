@@ -34,6 +34,8 @@ export interface ClientToServerEvents {
   selectWinners: (playerIds: string[]) => void;
   setStack: (playerIndex: number, stack: number) => void;
   getRooms: (callback: (rooms: Rooms) => void) => void;
+  kickPlayers: (pIds: string[]) => void;
+  setAdmin: (pId: string) => void;
 }
 export interface ServerToClientEvents {
   updateRoom: (room: Room) => void;

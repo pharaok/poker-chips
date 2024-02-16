@@ -28,11 +28,11 @@ export default function JoinRoomModal({
       onOpenChange={setOpen}
       title="JOIN ROOM"
     >
-      <div className="flex w-full flex-col items-center gap-4 px-6">
-        <div className="w-full overflow-scroll">
-          {rooms && (
-            <table className="whitespace-nowrap text-center [&_td]:p-2 [&_th]:p-2">
-              <thead>
+      <div className="flex w-full flex-col items-center gap-4">
+        {rooms.length ? (
+          <div className="max-h-48 w-full overflow-scroll">
+            <table className="h-24 whitespace-nowrap [&_td]:p-2 first:[&_td]:!pl-6 last:[&_td]:!pr-6 [&_th]:p-2 first:[&_th]:!pl-6 last:[&_th]:!pr-6">
+              <thead className="p-2">
                 <th>NAME</th>
                 <th>HOST</th>
                 <th>PLAYERS</th>
@@ -43,9 +43,9 @@ export default function JoinRoomModal({
                 return (
                   <tr
                     onClick={() => setRoomCode(room.code)}
-                    className="cursor-pointer select-none transition-colors hover:bg-gray-800"
+                    className="-mx-4 cursor-pointer select-none transition-colors [&>*]:hover:bg-gray-800"
                   >
-                    <td>{room.name}</td>
+                    <td className="rounded-l-full !pl-4">{room.name}</td>
                     <td>{room.host}</td>
                     <td>
                       {room.playerCount}
@@ -56,13 +56,13 @@ export default function JoinRoomModal({
                       )}
                     </td>
                     <td>{room.buyIn.toLocaleString()}</td>
-                    <td>{`${room.smallBlind.toLocaleString()}/${room.bigBlind.toLocaleString()}`}</td>
+                    <td className="rounded-r-full !pr-4">{`${room.smallBlind.toLocaleString()}/${room.bigBlind.toLocaleString()}`}</td>
                   </tr>
                 );
               })}
             </table>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         <div className="flex gap-2">
           <Input

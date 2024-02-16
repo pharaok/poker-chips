@@ -42,10 +42,10 @@ const leaveRoom = (socket: Socket) => {
   if (!rId) return;
 
   const room = rooms[rId]!;
-  socket.leave(rId);
   room.getUp(socket.id);
   room.leaveTable(socket.id);
   io.to(rId).emit("updateRoom", room);
+  socket.leave(rId);
   if (room.players.length === 0) {
     delete rooms[rId];
   }
@@ -56,21 +56,6 @@ io.on("connection", (socket) => {
   let cId: string | undefined;
   if (socket.request.headers.cookie) {
     cId = parse(socket.request.headers.cookie).id!;
-    if (recovery[cId]) {
-      // reconnect
-      const { roomId, socketId: prevId } = recovery[cId]!;
-      socket.join(roomId);
-      const room = rooms[roomId]!;
-      const player = room.players.find((p) => p.id === prevId)!;
-      player.id = socket.id;
-      player.isDisconnected = false;
-      playerRoom[socket.id] = roomId;
-
-      delete recovery[cId];
-      delete playerRoom[prevId];
-
-      console.log("recover:", cId);
-    }
   }
   console.log("connect:", cId);
   socket.on("createRoom", (name, buyIn, smallBlind, bigBlind, callback) => {
@@ -85,6 +70,28 @@ io.on("connection", (socket) => {
       return;
     }
     const room = rooms[rId]!;
+
+    if (cId && recovery[cId]) {
+      // reconnect
+      const { roomId, socketId: prevId } = recovery[cId]!;
+      if (roomId === rId) {
+        socket.join(rId);
+        const room = rooms[roomId]!;
+        const player = room.players.find((p) => p.id === prevId)!;
+        player.id = socket.id;
+        player.isDisconnected = false;
+        playerRoom[socket.id] = rId;
+
+        delete recovery[cId];
+        delete playerRoom[prevId];
+
+        console.log("recover:", cId);
+        io.to(rId).emit("updateRoom", room);
+        callback(room);
+        return;
+      }
+    }
+
     // leave all other rooms
     socket.rooms.forEach((room) => {
       if (room !== socket.id) {
@@ -190,24 +197,52 @@ io.on("connection", (socket) => {
   });
 
   socket.on("getRooms", (callback) => {
-    const rs = Object.entries(rooms).map(([code, room]) => {
-      const { name, buyIn, smallBlind, bigBlind } = room;
-      return {
-        code,
-        name,
-        host: room.admin!.name,
-        buyIn,
-        smallBlind,
-        bigBlind,
-        playerCount: room.players.filter((p) => !p.isDisconnected).length,
-      };
-    });
+    const rs = Object.entries(rooms)
+      .map(([code, room]) => {
+        const { name, buyIn, smallBlind, bigBlind } = room;
+        return {
+          code,
+          name,
+          host: room.admin!.name,
+          buyIn,
+          smallBlind,
+          bigBlind,
+          playerCount: room.players.filter((p) => !p.isDisconnected).length,
+        };
+      })
+      .filter((r) => r.playerCount);
     callback(rs);
+  });
+  socket.on("kickPlayers", (pIds) => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.admin?.id) return;
+
+    pIds.forEach((pId) => {
+      const otherSocket = io.sockets.sockets.get(pId);
+      if (otherSocket) leaveRoom(otherSocket);
+    });
+
+    io.to(rId).emit("updateRoom", room);
+  });
+  socket.on("setAdmin", (pId) => {
+    const rId = playerRoom[socket.id];
+    if (!rId) return;
+    const room = rooms[rId]!;
+    if (socket.id !== room.admin?.id) return;
+
+    const player = room.players.find((p) => p.id === pId);
+    if (!player) return;
+    room.admin = player;
+
+    io.to(rId).emit("updateRoom", room);
   });
 
   socket.on("leaveRoom", () => {
     leaveRoom(socket);
   });
+
   socket.on("disconnect", () => {
     if (!cId) return;
     const rId = playerRoom[socket.id];

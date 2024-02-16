@@ -28,6 +28,7 @@ export default function Page({ params }: { params: { code: string } }) {
 
   const [room, setRoom] = useState<Room | null | undefined>(undefined);
   const playerIndex = room?.players.findIndex((p) => p.id === socket.id);
+
   const player =
     playerIndex !== undefined ? room!.players[playerIndex] : undefined;
   const isAdmin = player?.id === room?.admin?.id;
@@ -56,10 +57,14 @@ export default function Page({ params }: { params: { code: string } }) {
       setRoom(room);
     });
     return () => {
+      // HACK:
+      socket.disconnect();
+      socket.connect();
       socket.off("updateRoom");
     };
   }, []);
 
+  if (room && playerIndex === -1) router.push("/"); // kicked
   if (room === null) notFound();
 
   return (
@@ -87,13 +92,16 @@ export default function Page({ params }: { params: { code: string } }) {
 
         <Table
           around={
+            room &&
+            player &&
+            playerIndex !== undefined &&
             room?.players.reduce((s, p) => s + +p.isPlaying, 0)
               ? room?.players.reduce((cs, _, i, a) => {
-                  i = (i + playerIndex!) % a.length;
+                  i = (i + playerIndex) % a.length;
                   const p = a[i]!;
-                  if (!p?.isPlaying) return cs;
+                  if (!p.isPlaying) return cs;
 
-                  if (!player!.isPlaying) {
+                  if (!player.isPlaying) {
                     cs.push(
                       <Button
                         className="flex h-12 w-12 items-center justify-center p-3 text-white"
